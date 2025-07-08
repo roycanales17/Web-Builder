@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<title>Page Builder</title>
+	<link href="resources/css/grapes/grapes.min.css" rel="stylesheet" />
+	<link href="resources/css/grapes/grapick.min.css" rel="stylesheet" />
+	<link href="resources/css/jquery/jquery-ui.css" rel="stylesheet" />
+	<link href="resources/style.css" rel="stylesheet" />
+</head>
+<body>
+	<div id="gjs"></div>
+
+	<div id="template-modal">
+		<h4>Select a Template</h4>
+		<select id="template-select">
+			<option value="template-banner">Banners</option>
+			<option value="template-layouts">Layouts</option>
+			<option value="template-navbar">Navbar</option>
+		</select>
+
+		<div id="component-list"></div>
+
+		<div class="template-modal-footer">
+			<button id="import-template">Import</button>
+			<button id="close-modal">Cancel</button>
+		</div>
+	</div>
+
+	<!-- JS Utilities -->
+	<script src="resources/js/jquery/jquery.min.js"></script>
+	<script src="resources/js/jquery/jquery.blockUI.js"></script>
+	<script src="resources/js/grapes/grapes.min.js"></script>
+	<script src="resources/js/grapes/grapesjs-preset-webpage.min.js"></script>
+	<script src="resources/js/grapes/grapesjs-blocks-basic.js"></script>
+	<script src="resources/js/grapes/grapesjs-plugin-forms.js"></script>
+	<script src="resources/js/grapes/grapesjs-component-countdown.js"></script>
+	<script src="resources/js/grapes/grapesjs-plugin-export.js"></script>
+	<script src="resources/js/grapes/grapesjs-tabs.js"></script>
+	<script src="resources/js/grapes/grapesjs-custom-code.js"></script>
+	<script src="resources/js/grapes/grapesjs-touch.js"></script>
+	<script src="resources/js/grapes/grapesjs-parser-postcss.js"></script>
+	<script src="resources/js/grapes/grapesjs-tooltip.js"></script>
+	<script src="resources/js/grapes/grapesjs-tui-image-editor.js"></script>
+	<script src="resources/js/grapes/grapesjs-typed.js"></script>
+	<script src="resources/js/grapes/grapesjs-style-bg.js"></script>
+	<script src="resources/js/grapes/grapesjs-code-editor.min.js"></script>
+
+	<!-- main JS as ES module -->
+	<script type="module" src="resources/main.js"></script>
+</body>
+</html>

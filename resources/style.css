@@ -1,0 +1,182 @@
+/* GrapesJS Editor Container */
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f5f6fa;
+}
+
+#gjs {
+    height: 100vh;
+    box-sizing: border-box;
+}
+
+/* Canvas styling */
+.gjs-cv-canvas {
+    background-color: #ffffff;
+    border-left: 1px solid #dcdde1;
+}
+
+/* Block styling */
+.gjs-block {
+    padding: 8px 10px;
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+    transition: 0.2s ease;
+    min-height: 64px;
+    text-align: center;
+}
+
+.gjs-block:hover {
+    border-color: #1e90ff;
+    box-shadow: 0 0 8px rgba(30, 144, 255, 0.2);
+}
+
+.gjs-block-label {
+    font-size: 12px;
+    font-weight: 500;
+    margin-top: 4px;
+    line-height: 1.3;
+}
+
+/* Icon / Media */
+.gjs-block__media,
+.gjs-block img,
+.gjs-block svg {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+    margin: 0 auto 6px;
+}
+
+/* Panels (sidebar) */
+.gjs-pn-panels {
+    background-color: #2f3640;
+}
+
+.gjs-pn-btn {
+    color: #dcdde1;
+    font-size: 14px;
+}
+
+.gjs-pn-btn:hover {
+    color: #00a8ff;
+}
+
+/* Tooltips */
+.gjs-tooltip {
+    background-color: #000;
+    color: #fff;
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 13px;
+}
+
+/* Custom component */
+.custom-component {
+    padding: 16px;
+    background: #dff9fb;
+    border: 1px solid #c7ecee;
+    border-radius: 6px;
+    color: #130f40;
+    font-size: 15px;
+    text-align: center;
+}
+
+/* Modern Modal */
+#template-modal {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    max-width: 80%;
+    width: 100%;
+    padding: 24px;
+    background: white;
+    border-radius: 12px;
+    transform: translate(-50%, -50%);
+    z-index: 9999;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.15);
+    font-family: 'Inter', sans-serif;
+    color: #2f3640;
+}
+
+#template-modal h4 {
+    margin: 0 0 16px;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+#template-select {
+    width: 100%;
+    padding: 10px;
+    font-size: 14px;
+    margin-bottom: 16px;
+    border-radius: 6px;
+    border: 1px solid #dcdde1;
+    background: #f9f9f9;
+}
+
+#component-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.component-item {
+    width: 180px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    padding: 8px;
+    cursor: pointer;
+    text-align: center;
+    transition: 0.2s ease;
+}
+
+.component-item img {
+    width: 100%;
+    border-radius: 4px;
+    margin-bottom: 6px;
+}
+
+.component-item:hover {
+    border-color: #1e90ff;
+    box-shadow: 0 0 6px rgba(30, 144, 255, 0.2);
+}
+
+.template-modal-footer {
+    text-align: right;
+}
+
+#import-template,
+#close-modal {
+    padding: 10px 16px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+#import-template {
+    background: #1e90ff;
+    color: white;
+    margin-right: 8px;
+}
+
+#import-template:hover {
+    background: #1c7ed6;
+}
+
+#close-modal {
+    background: #e0e0e0;
+    color: #333;
+}
+
+#close-modal:hover {
+    background: #d2d2d2;
+}
