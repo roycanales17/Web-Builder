@@ -173,29 +173,32 @@ export default {
 			
 			/* Tablet (<= 1024px) */
 			@media (max-width: 1024px) {
+				.g--banner-hero-2 {
+					height: auto;
+				}
 				.g--banner-hero-2-introduction h1 {
-				font-size: 4em;
-				line-height: 1.2;
+					font-size: 4em;
+					line-height: 1.2;
 				}
 				.g--banner-hero-2-introduction p {
-				font-size: 1.1em;
+					font-size: 1.1em;
 				}
 				.g--banner-hero-2-features {
-				flex-direction: column;
-				align-items: flex-start;
-				gap: 20px;
-				padding: 30px 0;
+					flex-direction: column;
+					align-items: flex-start;
+					gap: 20px;
+					padding: 30px 0;
 				}
 				.g--banner-hero-2-lists {
-				flex-direction: column;
-				width: 100%;
-				gap: 15px;
+					flex-direction: column;
+					width: 100%;
+					gap: 15px;
 				}
 				.g--banner-hero-2-feature {
-				width: 100%;
+					width: 100%;
 				}
 				.g--banner-hero-2-button {
-				width: 100%;
+					width: 100%;
 				}
 			}
 			
