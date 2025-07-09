@@ -143,10 +143,17 @@ document.addEventListener('DOMContentLoaded', function () {
 				</div>
 			`);
 
-			el.on('click', function () {
+			function selectComponent() {
 				$('.component-item').css('border', '1px solid #ccc');
-				$(this).css('border', '2px solid #1e90ff');
+				el.css('border', '2px solid #1e90ff');
 				selectedComponent = comp;
+			}
+
+			el.on('click', selectComponent);
+
+			el.on('dblclick', function () {
+				selectComponent();
+				$('#import-template').click(); // Optional: auto-import on double-click
 			});
 
 			container.append(el);
