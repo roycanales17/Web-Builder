@@ -4,9 +4,9 @@ export default {
 	thumbnail: '/resources/images/thumbnails/banners/banner-1.png',
 	category: 'Banner',
 	content: `
-	<section class="grape--banner-hero-1">
-		<div class="grape--banner-overlay">
-			<div class="grape--banner-hero-1-infos"> 
+	<section class="g--banner-hero-1">
+		<div class="g--banner-hero-1-overlay">
+			<div class="g--banner-hero-1-introduction"> 
 				<h1>Bring AI-Driven understanding of users to your app</h1>
 				<p>Boost your app with a personalized monetization and engagement experience. Delight your users with exactly what they want.</p>
 				<button>Get the demo &gt;</button>
@@ -15,7 +15,7 @@ export default {
 	</section>
 	
 	<style>
-		.grape--banner-hero-1 {
+		.g--banner-hero-1 {
 			position: relative;
 			height: 100vh;
 			background-image: url('/resources/images/banners/banner-1.avif');
@@ -27,7 +27,7 @@ export default {
 			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 		}
 		
-		.grape--banner-overlay {
+		.g--banner-hero-1-overlay {
 			width: 100%;
 			height: 100%;
 			background: linear-gradient(
@@ -40,26 +40,26 @@ export default {
 			align-items: center;
 		}
 		
-		.grape--banner-hero-1-infos {
+		.g--banner-hero-1-introduction {
 			max-width: 800px;
 			padding: 80px;
 			z-index: 1;
 		}
 		
-		.grape--banner-hero-1 h1 {
+		.g--banner-hero-1 h1 {
 			font-size: 3.5em;
 			font-weight: 600;
 			margin: 0 0 20px 0;
 		}
 		
-		.grape--banner-hero-1 p {
+		.g--banner-hero-1 p {
 			font-size: 14px;
 			word-spacing: 1px;
 			line-height: 1.45;
 			margin-bottom: 30px;
 		}
 		
-		.grape--banner-hero-1 button {
+		.g--banner-hero-1 button {
 			padding: 12px 24px;
 			font-size: 1em;
 			border: none;
@@ -72,25 +72,25 @@ export default {
 			transition: background 0.25s ease, box-shadow 0.25s ease, transform 0.1s ease;
 		}
 		
-		.grape--banner-hero-1 button:hover {
+		.g--banner-hero-1 button:hover {
 			background-color: #1c7ed6;
 			box-shadow: 0 6px 18px rgba(30, 144, 255, 0.4);
 			transform: translateY(-1px);
 		}
 		
-		.grape--banner-hero-1 button:focus {
+		.g--banner-hero-1 button:focus {
 			outline: none;
 			box-shadow: 0 0 0 3px rgba(30, 144, 255, 0.4);
 		}
 		
 		
 		@media (max-width: 768px) {
-			.grape--banner-hero-1 {
+			.g--banner-hero-1 {
 				height: auto;
 				padding-bottom: 40px;
 			}
 		
-			.grape--banner-overlay {
+			.g--banner-hero-1-overlay {
 				flex-direction: column;
 				background: linear-gradient(
 					to bottom,
@@ -100,17 +100,17 @@ export default {
 				);
 			}
 		
-			.grape--banner-hero-1-infos {
+			.g--banner-hero-1-introduction {
 				padding: 40px 20px;
 				max-width: 100%;
 				text-align: left;
 			}
 			
-			.grape--banner-hero-1 h1 {
+			.g--banner-hero-1 h1 {
 				font-size: 2em;
 			}
 			
-			.grape--banner-hero-1 p {
+			.g--banner-hero-1 p {
 				font-size: 1em;
 			}
 		}
