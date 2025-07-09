@@ -69,7 +69,7 @@ export default {
 				flex-direction: column;
 				justify-content: center;
 				align-items: center;
-				padding: 120px 80px 80px 80px;
+				padding: 200px 80px 80px 80px;
 				gap: 7em;
 				background: linear-gradient(to top, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0));
 			}
