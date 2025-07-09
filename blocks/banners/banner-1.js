@@ -1,67 +1,119 @@
 export default {
 	id: 'banner-1',
 	label: 'Banner 1',
-	thumbnail: 'https://via.placeholder.com/150x100?text=Banner+1',
+	thumbnail: '/resources/images/thumbnails/banners/banner-1.png',
 	category: 'Banner',
 	content: `
-		<section class="grape--banner-hero-1">
-			<div class="grape--banner-hero-inner">
-				<h1>Build Your Dream Project</h1>
-				<p>Start designing with ease and flexibility using our intuitive builder tools.</p>
-				<button>Launch Now</button>
+	<section class="grape--banner-hero-1">
+		<div class="grape--banner-overlay">
+			<div class="grape--banner-hero-1-infos"> 
+				<h1>Bring AI-Driven understanding of users to your app</h1>
+				<p>Boost your app with a personalized monetization and engagement experience. Delight your users with exactly what they want.</p>
+				<button>Get the demo &gt;</button>
 			</div>
-		</section>
-
-		<style>
+		</div>
+	</section>
+	
+	<style>
+		.grape--banner-hero-1 {
+			position: relative;
+			height: 100vh;
+			background-image: url('/resources/images/banners/banner-1.avif');
+			background-size: cover;
+			background-position: center;
+			display: flex;
+			align-items: center;
+			justify-content: flex-start;
+			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+		}
+		
+		.grape--banner-overlay {
+			width: 100%;
+			height: 100%;
+			background: linear-gradient(
+			  to right,
+			  rgba(255, 255, 255, 1) 40%,
+			  rgba(255, 255, 255, 0.8) 60%,
+			  rgba(255, 255, 255, 0) 90%
+			);
+			display: flex;
+			align-items: center;
+		}
+		
+		.grape--banner-hero-1-infos {
+			max-width: 800px;
+			padding: 80px;
+			z-index: 1;
+		}
+		
+		.grape--banner-hero-1 h1 {
+			font-size: 3.5em;
+			font-weight: 600;
+			margin: 0 0 20px 0;
+		}
+		
+		.grape--banner-hero-1 p {
+			font-size: 14px;
+			word-spacing: 1px;
+			line-height: 1.45;
+			margin-bottom: 30px;
+		}
+		
+		.grape--banner-hero-1 button {
+			padding: 12px 24px;
+			font-size: 1em;
+			border: none;
+			background-color: #1e90ff;
+			color: #fff;
+			cursor: pointer;
+			border-radius: 8px;
+			font-weight: 600;
+			box-shadow: 0 4px 12px rgba(30, 144, 255, 0.3);
+			transition: background 0.25s ease, box-shadow 0.25s ease, transform 0.1s ease;
+		}
+		
+		.grape--banner-hero-1 button:hover {
+			background-color: #1c7ed6;
+			box-shadow: 0 6px 18px rgba(30, 144, 255, 0.4);
+			transform: translateY(-1px);
+		}
+		
+		.grape--banner-hero-1 button:focus {
+			outline: none;
+			box-shadow: 0 0 0 3px rgba(30, 144, 255, 0.4);
+		}
+		
+		
+		@media (max-width: 768px) {
 			.grape--banner-hero-1 {
-				padding: 80px 20px;
-				background: linear-gradient(135deg, #e0f7fa, #f0f4f8);
-				text-align: center;
-				border-radius: 12px;
-				box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+				height: auto;
+				padding-bottom: 40px;
 			}
-
-			.grape--banner-hero-inner {
-				max-width: 720px;
-				margin: 0 auto;
+		
+			.grape--banner-overlay {
+				flex-direction: column;
+				background: linear-gradient(
+					to bottom,
+					rgba(255, 255, 255, 0.95) 60%,
+					rgba(255, 255, 255, 0.8) 80%,
+					rgba(255, 255, 255, 0) 100%
+				);
 			}
-
+		
+			.grape--banner-hero-1-infos {
+				padding: 40px 20px;
+				max-width: 100%;
+				text-align: left;
+			}
+			
 			.grape--banner-hero-1 h1 {
-				font-size: 2rem;
-				margin-bottom: 0.5rem;
-				color: #2f3640;
+				font-size: 2em;
 			}
-
+			
 			.grape--banner-hero-1 p {
-				font-size: 1rem;
-				color: #555;
-				margin-bottom: 1.5rem;
+				font-size: 1em;
 			}
-
-			.grape--banner-hero-1 button {
-				padding: 12px 24px;
-				font-size: 1rem;
-				background-color: #1e90ff;
-				color: #fff;
-				border: none;
-				border-radius: 6px;
-				cursor: pointer;
-				transition: background-color 0.3s ease;
-			}
-
-			.grape--banner-hero-1 button:hover {
-				background-color: #1c7ed6;
-			}
-
-			@media (min-width: 640px) {
-				.grape--banner-hero-1 h1 {
-					font-size: 2.5rem;
-				}
-
-				.grape--banner-hero-1 p {
-					font-size: 1.125rem;
-				}
-			}
-		</style>
+		}
+	</style>
 	`
 };

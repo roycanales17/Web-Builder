@@ -4,7 +4,7 @@ export default {
 	thumbnail: 'https://via.placeholder.com/150x100?text=Navbar+1',
 	category: 'Navbar',
 	content: `
-		<header style="display:flex;justify-content:space-between;align-items:center;padding:16px 24px;background:#1e90ff;color:white;">
+		<header style="position: absolute; top: 0; left: 0;width: 100%;display:flex;justify-content:space-between;align-items:center;padding:16px 24px;background:#1e90ff;color:white;">
 			<div style="font-size:20px;font-weight:bold;">BrandLogo</div>
 			<nav style="display:flex;gap:20px;">
 				<a href="#" style="color:white;text-decoration:none;">Home</a>

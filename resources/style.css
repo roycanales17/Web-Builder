@@ -13,9 +13,8 @@ html, body {
 }
 
 /* Canvas styling */
-.gjs-cv-canvas {
-    background-color: #ffffff;
-    border-left: 1px solid #dcdde1;
+.gjs-cv-canvas__frames {
+    background: #111110;
 }
 
 /* Block styling */

@@ -32,10 +32,47 @@ document.addEventListener('DOMContentLoaded', function () {
 		}
 	});
 
+	// the Dimensions sector
+	editor.StyleManager.addProperty('dimension', {
+		name: 'Min Width',
+		property: 'min-width',
+		type: 'integer',
+		units: ['px', '%', 'em', 'vw'],
+		defaults: '0px',
+	});
+
+	editor.StyleManager.addProperty('dimension', {
+		name: 'Max Height',
+		property: 'max-height',
+		type: 'integer',
+		units: ['px', '%', 'em', 'vh'],
+		defaults: 'none',
+	});
+
+	// Flex sector
+	editor.StyleManager.addProperty('flex', {
+		name: 'Gap',
+		property: 'gap',
+		type: 'integer',
+		units: ['px', '%', 'em', 'rem'],
+		defaults: '0px',
+	});
+
 	// Collapse block categories like Basic, Forms, etc. on load
 	editor.on('load', () => {
+		// Close all block categories
 		const categories = editor.BlockManager.getCategories();
 		categories.each(cat => cat.set('open', false));
+
+		// Inject stylesheet into the canvas iframe
+		const iframe = editor.Canvas.getFrameEl();
+		const head = iframe.contentDocument.head;
+
+		const link = document.createElement('link');
+		link.rel = 'stylesheet';
+		link.href = 'resources/canva.css';
+		link.type = 'text/css';
+		head.appendChild(link);
 	});
 
 	// Manually add basic blocks (like gjs-blocks-basic)
