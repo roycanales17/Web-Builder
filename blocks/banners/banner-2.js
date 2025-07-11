@@ -67,9 +67,9 @@ export default {
 				height: 100%;
 				display: flex;
 				flex-direction: column;
-				justify-content: center;
+				justify-content: space-between;
 				align-items: center;
-				padding: 200px 80px 80px 80px;
+				padding: 200px 80px 60px 80px;
 				gap: 7em;
 				background: linear-gradient(to top, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0));
 			}
