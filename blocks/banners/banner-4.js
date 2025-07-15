@@ -17,6 +17,7 @@ id: 'banner-4',
 	
 	<style>
 	  .g--banner-hero-4 {
+	    position: relative;
 		display: flex;
 		align-items: center;
 		justify-content: center;
