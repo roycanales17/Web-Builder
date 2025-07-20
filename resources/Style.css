@@ -129,6 +129,7 @@ body {
 .droppable {
     min-height: 100%;
     transition: border-color 0.2s ease;
+    padding: 10px;
 }
 
 .compiled {
