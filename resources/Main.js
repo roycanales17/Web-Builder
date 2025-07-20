@@ -12,7 +12,7 @@ function dropManagerInit(identifier = '') {
 	return getModule().then(module => module.default(identifier));
 }
 
-function blockManagerInit(callback) {
+function blockManagerInit(identifier, callback) {
 	const getModule = (() => {
 		let modulePromise;
 		return () => {
@@ -23,7 +23,7 @@ function blockManagerInit(callback) {
 		};
 	})();
 
-	return getModule().then(module => callback(module.default()));
+	return getModule().then(module => callback(module.default(identifier)));
 }
 
 // Tab content controller

@@ -48,26 +48,8 @@
 			</div>
 
 			<!-- Blocks Tab -->
-			<div class="tab-content active" data-tab="blocks">
-				<!-- Category Navigation -->
-				<div class="block-categories" id="category-list">
-					<ul class="category-list">
-						<!-- Populated dynamically -->
-					</ul>
-				</div>
-
-				<!-- Panel Header (shown when a category is active) -->
-				<div class="category-wrapper">
-					<div id="category-header">
-						<button id="back-to-categories">← Back</button>
-						<h4 id="category-title"></h4>
-					</div>
-
-					<!-- Block Panels -->
-					<div class="block-panels">
-						<!-- Populated dynamically -->
-					</div>
-				</div>
+			<div class="tab-content active" data-tab="blocks" id="blocks-content">
+				<!-- Populated dynamically -->
 			</div>
 
 			<!-- Settings Tab -->
@@ -118,7 +100,7 @@
 		</div>
 	</div>
 	<script>
-		blockManagerInit(manager => {
+		blockManagerInit('blocks-content', manager => {
 			manager.setCategoryLabel('layouts', 'Layouts', 'fas fa-layer-group');
 			manager.setCategoryLabel('controls', 'Form Controls', 'fas fa-sliders-h');
 			manager.setCategoryLabel('components', 'Components', 'fas fa-cube');

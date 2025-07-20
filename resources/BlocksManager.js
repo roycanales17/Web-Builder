@@ -1,14 +1,37 @@
 export class BlocksManager {
-	constructor(options = {}) {
+	constructor(identifier, options = {}) {
 		this.categories = {};
-		this.categoryListEl = document.getElementById('category-list');
-		this.categoryWrapper = document.querySelector('.category-wrapper');
-		this.categoryTitleEl = document.getElementById('category-title');
-		this.backBtn = document.getElementById('back-to-categories');
-		this.blockPanelsEl = document.querySelector('.block-panels');
+		this.container = document.getElementById(identifier);
+
 		this.onCategoryChange = options.onCategoryChange || (() => {});
+		this.initContainer(); // generate DOM structure
 		this.initBackButton();
 	}
+
+	initContainer() {
+		this.container.innerHTML = `
+			<div class="block-categories" id="category-list">
+				<ul class="category-list"></ul>
+			</div>
+	
+			<div class="category-wrapper">
+				<div id="category-header">
+					<button id="back-to-categories">← Back</button>
+					<h4 id="category-title"></h4>
+				</div>
+	
+				<div class="block-panels"></div>
+			</div>
+		`;
+
+		// Rebind elements after injecting HTML
+		this.categoryListEl = this.container.querySelector('#category-list');
+		this.categoryWrapper = this.container.querySelector('.category-wrapper');
+		this.categoryTitleEl = this.container.querySelector('#category-title');
+		this.backBtn = this.container.querySelector('#back-to-categories');
+		this.blockPanelsEl = this.container.querySelector('.block-panels');
+	}
+
 
 	register(category, block) {
 		if (!this.categories[category]) {
@@ -137,6 +160,6 @@ export class BlocksManager {
 	}
 }
 
-export default function init() {
-	return new BlocksManager();
+export default function init(identifier) {
+	return new BlocksManager(identifier);
 }
