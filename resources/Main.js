@@ -26,6 +26,20 @@ function blockManagerInit(identifier, callback) {
 	return getModule().then(module => callback(module.default(identifier)));
 }
 
+function tabManagerInit(identifier, callback) {
+	const getModule = (() => {
+		let modulePromise;
+		return () => {
+			if (!modulePromise) {
+				modulePromise = import('./TabManager.js');
+			}
+			return modulePromise;
+		};
+	})();
+
+	return getModule().then(module => callback(module.default(identifier)));
+}
+
 // Tab content controller
 document.addEventListener('DOMContentLoaded', () => {
 	const tabs = document.querySelectorAll('.tab');

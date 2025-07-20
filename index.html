@@ -37,91 +37,51 @@
 		</div>
 
 		<div id="toolbar">
-			<div class="tab-bar">
-				<div class="tab active" data-tab="blocks" title="Drag HTML elements to the canvas">
-					<i class="fas fa-toolbox"></i>
-				</div>
-				<div class="tab" data-tab="settings" title="Edit styles for selected element">
-					<i class="fas fa-cog"></i>
-				</div>
-				<div class="tab" data-tab="create" title="Create a new element or define custom class">
-					<i class="fas fa-plus"></i>
-				</div>
-				<div class="tab-underline"></div>
-			</div>
-
-			<!-- Blocks Tab -->
-			<div class="tab-content active" data-tab="blocks" id="blocks-content">
-				<!-- Populated dynamically -->
-			</div>
-
-			<!-- Settings Tab -->
-			<div class="tab-content" data-tab="settings">
-				<h4>Element Settings</h4>
-				<div class="settings-placeholder">
-					<p>Select an element to edit its styles</p>
-					<!-- You can later populate this dynamically when a user selects an element -->
-				</div>
-			</div>
-
-			<!-- Create Tab -->
-			<div class="tab-content" data-tab="create">
-				<h4>Create New Element</h4>
-				<form id="create-element-form">
-					<label>
-						Element tag:
-						<input type="text" placeholder="e.g., div, span, section" />
-					</label>
-					<label>
-						Text content:
-						<input type="text" placeholder="Enter default text" />
-					</label>
-					<label>
-						Class name:
-						<input type="text" placeholder="Optional class name" />
-					</label>
-					<button type="submit">Create Element</button>
-				</form>
-
-				<h4>Create CSS Class</h4>
-				<form id="create-css-form">
-					<label>
-						Class name:
-						<input type="text" placeholder="e.g., .my-style" />
-					</label>
-					<label>
-						Property:
-						<input type="text" placeholder="e.g., color" />
-					</label>
-					<label>
-						Value:
-						<input type="text" placeholder="e.g., red" />
-					</label>
-					<button type="submit">Add Property</button>
-				</form>
-			</div>
 		</div>
 	</div>
 	<script>
-		blockManagerInit('blocks-content', manager => {
-			manager.setCategoryLabel('layouts', 'Layouts', 'fas fa-layer-group');
-			manager.setCategoryLabel('controls', 'Form Controls', 'fas fa-sliders-h');
-			manager.setCategoryLabel('components', 'Components', 'fas fa-cube');
-			manager.setCategoryLabel('content', 'Content', 'fas fa-newspaper');
+		tabManagerInit("toolbar", (manager) => {
+			manager.addTab({
+				tab: 'blocks',
+				description: 'Drag HTML elements to the canvas',
+				icon: 'fas fa-toolbox',
+				contentIdentifier: 'blocks-content',
+				fallback: () =>
+				{
+					blockManagerInit('blocks-content', manager => {
+						manager.setCategoryLabel('layouts', 'Layouts', 'fas fa-layer-group');
+						manager.setCategoryLabel('controls', 'Form Controls', 'fas fa-sliders-h');
+						manager.setCategoryLabel('components', 'Components', 'fas fa-cube');
+						manager.setCategoryLabel('content', 'Content', 'fas fa-newspaper');
 
-			manager.register('layouts', { label: 'Row', type: 'div', context: 'Row' });
-			manager.register('layouts', { label: 'Section', type: 'section', context: 'Section' });
+						manager.register('layouts', { label: 'Row', type: 'div', context: 'Row' });
+						manager.register('layouts', { label: 'Section', type: 'section', context: 'Section' });
 
-			manager.register('controls', { label: 'Input', type: 'input', context: 'Type here' });
-			manager.register('controls', { label: 'Button', type: 'button', context: 'Click me' });
+						manager.register('controls', { label: 'Input', type: 'input', context: 'Type here' });
+						manager.register('controls', { label: 'Button', type: 'button', context: 'Click me' });
 
-			manager.register('components', { label: 'List', type: 'ul', context: 'List' });
-			manager.register('components', { label: 'Image', type: 'img', context: 'Image' });
+						manager.register('components', { label: 'List', type: 'ul', context: 'List' });
+						manager.register('components', { label: 'Image', type: 'img', context: 'Image' });
 
-			manager.register('content', { label: 'Heading', type: 'h1', context: 'Header' });
-			manager.register('content', { label: 'Paragraph', type: 'p', context: 'Paragraph' });
+						manager.register('content', { label: 'Heading', type: 'h1', context: 'Header' });
+						manager.register('content', { label: 'Paragraph', type: 'p', context: 'Paragraph' });
 
-			manager.renderAll();
+						manager.renderAll();
+					});
+				}
+			});
+
+			manager.addTab({
+				tab: 'settings',
+				description: 'Edit styles for selected element',
+				icon: 'fas fa-cog'
+			});
+
+			manager.addTab({
+				tab: 'create',
+				description: 'Create a new element or define custom class',
+				icon: 'fas fa-plus'
+			});
 		});
 
 		dropManagerInit('drop-area');
