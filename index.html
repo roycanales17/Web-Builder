@@ -48,21 +48,21 @@
 				contentIdentifier: 'blocks-content',
 				fallback: () =>
 				{
-					blockManagerInit('blocks-content', blockManager => {
+					blockManagerInit('blocks-content', blockManager =>
+					{
 						blockManager.setCategoryLabel('layouts', 'Layouts', 'fas fa-layer-group');
-						blockManager.setCategoryLabel('controls', 'Form Controls', 'fas fa-sliders-h');
-						blockManager.setCategoryLabel('components', 'Components', 'fas fa-cube');
-						blockManager.setCategoryLabel('content', 'Content', 'fas fa-newspaper');
-
 						blockManager.register('layouts', { label: 'Row', type: 'div', context: 'Row' });
 						blockManager.register('layouts', { label: 'Section', type: 'section', context: 'Section' });
 
+						blockManager.setCategoryLabel('controls', 'Form Controls', 'fas fa-sliders-h');
 						blockManager.register('controls', { label: 'Input', type: 'input', context: 'Type here' });
 						blockManager.register('controls', { label: 'Button', type: 'button', context: 'Click me' });
 
+						blockManager.setCategoryLabel('components', 'Components', 'fas fa-cube');
 						blockManager.register('components', { label: 'List', type: 'ul', context: 'List' });
 						blockManager.register('components', { label: 'Image', type: 'img', context: 'Image' });
 
+						blockManager.setCategoryLabel('content', 'Content', 'fas fa-newspaper');
 						blockManager.register('content', { label: 'Heading', type: 'h1', context: 'Header' });
 						blockManager.register('content', { label: 'Paragraph', type: 'p', context: 'Paragraph' });
 
