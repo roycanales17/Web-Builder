@@ -40,44 +40,44 @@
 		</div>
 	</div>
 	<script>
-		tabManagerInit("toolbar", (manager) => {
-			manager.addTab({
+		tabManagerInit("toolbar", (tabManager) => {
+			tabManager.addTab({
 				tab: 'blocks',
 				description: 'Drag HTML elements to the canvas',
 				icon: 'fas fa-toolbox',
 				contentIdentifier: 'blocks-content',
 				fallback: () =>
 				{
-					blockManagerInit('blocks-content', manager => {
-						manager.setCategoryLabel('layouts', 'Layouts', 'fas fa-layer-group');
-						manager.setCategoryLabel('controls', 'Form Controls', 'fas fa-sliders-h');
-						manager.setCategoryLabel('components', 'Components', 'fas fa-cube');
-						manager.setCategoryLabel('content', 'Content', 'fas fa-newspaper');
+					blockManagerInit('blocks-content', blockManager => {
+						blockManager.setCategoryLabel('layouts', 'Layouts', 'fas fa-layer-group');
+						blockManager.setCategoryLabel('controls', 'Form Controls', 'fas fa-sliders-h');
+						blockManager.setCategoryLabel('components', 'Components', 'fas fa-cube');
+						blockManager.setCategoryLabel('content', 'Content', 'fas fa-newspaper');
 
-						manager.register('layouts', { label: 'Row', type: 'div', context: 'Row' });
-						manager.register('layouts', { label: 'Section', type: 'section', context: 'Section' });
+						blockManager.register('layouts', { label: 'Row', type: 'div', context: 'Row' });
+						blockManager.register('layouts', { label: 'Section', type: 'section', context: 'Section' });
 
-						manager.register('controls', { label: 'Input', type: 'input', context: 'Type here' });
-						manager.register('controls', { label: 'Button', type: 'button', context: 'Click me' });
+						blockManager.register('controls', { label: 'Input', type: 'input', context: 'Type here' });
+						blockManager.register('controls', { label: 'Button', type: 'button', context: 'Click me' });
 
-						manager.register('components', { label: 'List', type: 'ul', context: 'List' });
-						manager.register('components', { label: 'Image', type: 'img', context: 'Image' });
+						blockManager.register('components', { label: 'List', type: 'ul', context: 'List' });
+						blockManager.register('components', { label: 'Image', type: 'img', context: 'Image' });
 
-						manager.register('content', { label: 'Heading', type: 'h1', context: 'Header' });
-						manager.register('content', { label: 'Paragraph', type: 'p', context: 'Paragraph' });
+						blockManager.register('content', { label: 'Heading', type: 'h1', context: 'Header' });
+						blockManager.register('content', { label: 'Paragraph', type: 'p', context: 'Paragraph' });
 
-						manager.renderAll();
+						blockManager.renderAll();
 					});
 				}
 			});
 
-			manager.addTab({
+			tabManager.addTab({
 				tab: 'settings',
 				description: 'Edit styles for selected element',
 				icon: 'fas fa-cog'
 			});
 
-			manager.addTab({
+			tabManager.addTab({
 				tab: 'create',
 				description: 'Create a new element or define custom class',
 				icon: 'fas fa-plus'
