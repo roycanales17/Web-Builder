@@ -136,6 +136,7 @@ export class BlocksManager {
 		const div = document.createElement('div');
 		div.classList.add('block');
 		div.setAttribute('draggable', 'true');
+		div.setAttribute('data-label', label);
 		div.setAttribute('data-type', type);
 		div.setAttribute('data-context', context);
 		div.textContent = label;
@@ -149,6 +150,7 @@ export class BlocksManager {
 		div.addEventListener('dragstart', e => {
 			e.dataTransfer.setData('type', type);
 			e.dataTransfer.setData('context', context);
+			e.dataTransfer.setData('label', label);
 		});
 
 		return div;

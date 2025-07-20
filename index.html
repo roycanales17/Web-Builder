@@ -40,51 +40,63 @@
 		</div>
 	</div>
 	<script>
-		tabManagerInit("toolbar", (tabManager) => {
-			tabManager.addTab({
-				tab: 'blocks',
-				description: 'Drag HTML elements to the canvas',
-				icon: 'fas fa-toolbox',
-				contentIdentifier: 'blocks-content',
-				fallback: () =>
-				{
-					blockManagerInit('blocks-content', blockManager =>
-					{
-						blockManager.setCategoryLabel('layouts', 'Layouts', 'fas fa-layer-group');
-						blockManager.register('layouts', { label: 'Row', type: 'div', context: 'Row' });
-						blockManager.register('layouts', { label: 'Section', type: 'section', context: 'Section' });
+		(async function main() {
 
-						blockManager.setCategoryLabel('controls', 'Form Controls', 'fas fa-sliders-h');
-						blockManager.register('controls', { label: 'Input', type: 'input', context: 'Type here' });
-						blockManager.register('controls', { label: 'Button', type: 'button', context: 'Click me' });
+			// ✅ Wait until ready
+			const dropManager = await dropManagerInit('drop-area');
 
-						blockManager.setCategoryLabel('components', 'Components', 'fas fa-cube');
-						blockManager.register('components', { label: 'List', type: 'ul', context: 'List' });
-						blockManager.register('components', { label: 'Image', type: 'img', context: 'Image' });
+			tabManagerInit("toolbar", (tabManager) => {
+				tabManager.addTab({
+					tab: 'blocks',
+					description: 'Drag HTML elements to the canvas',
+					icon: 'fas fa-toolbox',
+					contentIdentifier: 'blocks-content',
+					fallback: () => {
+						blockManagerInit('blocks-content', blockManager => {
+							blockManager.setCategoryLabel('layouts', 'Layouts', 'fas fa-layer-group');
+							blockManager.register('layouts', { label: 'Row', type: 'div', context: 'Row' });
+							blockManager.register('layouts', { label: 'Section', type: 'section', context: 'Section' });
 
-						blockManager.setCategoryLabel('content', 'Content', 'fas fa-newspaper');
-						blockManager.register('content', { label: 'Heading', type: 'h1', context: 'Header' });
-						blockManager.register('content', { label: 'Paragraph', type: 'p', context: 'Paragraph' });
+							blockManager.setCategoryLabel('controls', 'Form Controls', 'fas fa-sliders-h');
+							blockManager.register('controls', { label: 'Input', type: 'input', context: 'Type here' });
+							blockManager.register('controls', { label: 'Button', type: 'button', context: 'Click me' });
 
-						blockManager.renderAll();
-					});
-				}
+							blockManager.setCategoryLabel('components', 'Components', 'fas fa-cube');
+							blockManager.register('components', { label: 'List', type: 'ul', context: 'List' });
+							blockManager.register('components', { label: 'Image', type: 'img', context: 'Image' });
+
+							blockManager.setCategoryLabel('content', 'Content', 'fas fa-newspaper');
+							blockManager.register('content', { label: 'Heading', type: 'h1', context: 'Header' });
+							blockManager.register('content', { label: 'Paragraph', type: 'p', context: 'Paragraph' });
+
+							blockManager.renderAll();
+						});
+					}
+				});
+
+				tabManager.addTab({
+					tab: 'settings',
+					description: 'Edit styles for selected element',
+					icon: 'fas fa-cog'
+				});
+
+				tabManager.addTab({
+					tab: 'structure',
+					description: 'View and manage the DOM structure of the canvas',
+					icon: 'fas fa-sitemap',
+					contentIdentifier: 'structure-content',
+					fallback: () => {
+						structureView('structure-content', dropManager.manager);
+					}
+				});
+
+				tabManager.addTab({
+					tab: 'create',
+					description: 'Create a new element or define custom class',
+					icon: 'fas fa-plus'
+				});
 			});
-
-			tabManager.addTab({
-				tab: 'settings',
-				description: 'Edit styles for selected element',
-				icon: 'fas fa-cog'
-			});
-
-			tabManager.addTab({
-				tab: 'create',
-				description: 'Create a new element or define custom class',
-				icon: 'fas fa-plus'
-			});
-		});
-
-		dropManagerInit('drop-area');
+		})();
 	</script>
 	</body>
 </html>

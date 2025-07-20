@@ -1,5 +1,4 @@
 class DropManager {
-
 	constructor(root) {
 		this.root = root;
 		this.lastDropTarget = null;
@@ -37,7 +36,6 @@ class DropManager {
 
 			for (let child of children) {
 				const rect = child.getBoundingClientRect();
-
 				const isFullWidth = (rect.width / zone.clientWidth) > 0.95;
 
 				const offset = isFullWidth
@@ -71,7 +69,6 @@ class DropManager {
 			this.toggleHighlight(zone, true);
 		});
 
-
 		zone.addEventListener('dragleave', e => {
 			const relatedZone = e.relatedTarget?.closest('.droppable');
 			if (relatedZone !== zone) {
@@ -96,14 +93,15 @@ class DropManager {
 			let fromToolbar = false;
 
 			if (!this.draggedElement) {
-				// From toolbar
 				const type = e.dataTransfer.getData('type');
 				const context = e.dataTransfer.getData('context');
+				const label = e.dataTransfer.getData('label') || context || type;
 
 				newElement = document.createElement(type);
 				newElement.textContent = context;
 				newElement.classList.add('compiled');
 				newElement.setAttribute('draggable', 'true');
+				newElement.setAttribute('data-label', label);
 
 				this.makeDraggable(newElement);
 				this.initDropZone(newElement);
@@ -159,13 +157,14 @@ class DropManager {
 			if (isToolbarItem) {
 				e.dataTransfer.setData('type', el.dataset.type);
 				e.dataTransfer.setData('context', el.dataset.context);
+				e.dataTransfer.setData('label', el.dataset.label || el.innerText || el.dataset.context || el.dataset.type);
 				this.draggedElement = null;
 			} else {
 				this.draggedElement = el;
 			}
 		});
 
-		el.addEventListener('dragend', (e) => this.toggleCompiledSpacing(false));
+		el.addEventListener('dragend', () => this.toggleCompiledSpacing(false));
 	}
 
 	insertSorted(container, newEl, dropTarget = null, dropPosition = null) {
@@ -209,23 +208,39 @@ class DropManager {
 	}
 
 	toggleCompiledSpacing(status) {
-		// Add margin on dragging
-		if (status) {
-			const compiledElements = document.querySelectorAll('.compiled');
-			compiledElements.forEach(elm => {
-				elm.classList.add('drag-margin');
-			});
+		const compiledElements = document.querySelectorAll('.compiled');
+		compiledElements.forEach(el => el.classList.toggle('drag-margin', status));
+	}
 
-			return;
+	getStructure() {
+		let idCounter = 0;
+
+		function traverse(node) {
+			const compiledChildren = Array.from(node.children).filter(child => child.classList.contains('compiled'));
+
+			return compiledChildren.map(child => {
+				if (!child.dataset.structureId) {
+					child.dataset.structureId = `node-${++idCounter}`;
+				}
+				return {
+					tag: child.tagName.toLowerCase(),
+					text: child.textContent,
+					label: child.dataset.label || '',
+					element: child,
+					children: traverse(child)
+				};
+			});
 		}
 
-		const compiledElements = document.querySelectorAll('.compiled.drag-margin');
-		compiledElements.forEach(elm => {
-			elm.classList.remove('drag-margin');
-		});
+		return traverse(this.root);
 	}
 }
 
 export default function init(root) {
-	return new DropManager(document.getElementById(root));
+	const manager = new DropManager(document.getElementById(root));
+
+	return {
+		manager,
+		getStructure: () => manager.getStructure()
+	};
 }

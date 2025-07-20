@@ -271,3 +271,27 @@ body {
     opacity: 1;
     pointer-events: auto;
 }
+
+/* === Structure Panels === */
+.structure-tree {
+    list-style-type: none;
+    padding-left: 1rem;
+}
+
+.structure-item {
+    font-family: monospace;
+    padding: 4px;
+    margin: 2px 0;
+    cursor: grab;
+}
+
+.structure-item small {
+    color: #888;
+    margin-left: 6px;
+}
+
+.structure-item.drag-over {
+    border: 1px dashed #42a5f5;
+    background: #e3f2fd;
+}
+
