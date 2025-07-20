@@ -1,0 +1,266 @@
+/* === Global Styles === */
+body {
+    margin: 0;
+    display: flex;
+    height: 100vh;
+    font-family: sans-serif;
+}
+
+/* === Main Layout === */
+.canvas-wrapper {
+    display: flex;
+    width: 100%;
+}
+
+/* === Canvas Panel (Canvas + Controller) === */
+#canvas-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* === Canvas Controller (Top Navbar Style) === */
+#canvas-controller {
+    display: flex;
+    gap: 10px;
+    padding: 10px 16px;
+    background: #f0f0f0;
+    border-bottom: 1px solid #ccc;
+    font-size: 14px;
+}
+
+.canvas-btn {
+    background: #eee;
+    padding: 6px 10px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.canvas-btn i {
+    margin-right: 5px;
+}
+
+.canvas-btn:hover {
+    background: #ddd;
+}
+
+.canvas-btn.primary {
+    background: royalblue;
+    color: white;
+    border-color: royalblue;
+}
+
+.canvas-btn.primary:hover {
+    background: #357ae8;
+}
+
+/* === Canvas Area === */
+#canvas {
+    flex: 1;
+    background: #fff;
+    border-left: 1px solid #ccc;
+    overflow: auto;
+}
+
+/* === Toolbar (Sidebar) === */
+#toolbar {
+    width: 250px;
+    background: #fafafa;
+    border-left: 3px solid #90caf9;
+    border-right: 1px solid #ccc;
+    display: flex;
+    flex-direction: column;
+}
+
+/* === Tab Bar (top of sidebar) === */
+.tab-bar {
+    display: flex;
+    position: relative;
+    border-bottom: 1px solid #ccc;
+    background: #e0e0e0;
+}
+
+/* === Individual Tab Buttons === */
+.tab {
+    flex: 1;
+    text-align: center;
+    padding: 10px 0;
+    cursor: pointer;
+    font-size: 20px;
+    position: relative;
+}
+
+.tab.active {
+    background: #fafafa;
+}
+
+/* === Animated Underline for Active Tab === */
+.tab-underline {
+    position: absolute;
+    bottom: 0;
+    height: 3px;
+    width: 0;
+    background: #42a5f5;
+    transition: left 0.25s ease, width 0.25s ease;
+}
+
+/* === Tab Contents === */
+.tab-content {
+    display: none;
+    padding: 10px;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* === Block inside Toolbar === */
+.block {
+    padding: 10px;
+    background: white;
+    border: 1px solid #ccc;
+    margin-bottom: 10px;
+    cursor: grab;
+}
+
+/* === Droppable Area === */
+.droppable {
+    min-height: 100%;
+    transition: border-color 0.2s ease;
+}
+
+.compiled {
+    border: 2px dashed #ddd;
+}
+
+.compiled.drag-highlight {
+    border: 2px dashed #888;
+}
+
+/* === Drop Line Indicator === */
+#drop-line {
+    position: absolute;
+    height: 2px;
+    background: limegreen;
+    pointer-events: none;
+    z-index: 9999;
+    display: none;
+    transition: all 0.08s ease-in-out;
+}
+
+.droppable.drop-target-highlight {
+    outline: 2px dashed limegreen;
+    outline-offset: -2px;
+}
+
+/* === Category Navigation === */
+#category-list.hidden {
+    display: none;
+}
+
+.category-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.category-list li {
+    width: 100%;
+}
+
+.category-btn {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 10px 14px;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+    gap: 10px;
+    transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.category-btn i {
+    font-size: 16px;
+    color: #555;
+    min-width: 20px;
+    text-align: center;
+}
+
+.category-btn:hover,
+.category-btn.active {
+    background: #e2e6ea;
+    border-color: #ced4da;
+}
+
+/* === Category Wrapper Slide Animation === */
+.category-wrapper {
+    transform: translateX(100%);
+    opacity: 0;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    pointer-events: none;
+}
+
+.category-wrapper.slide-in {
+    transform: translateX(0%);
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.category-wrapper.slide-out {
+    transform: translateX(100%);
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* === Category Header === */
+#category-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 10px 0 20px 0;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+#category-header.visible {
+    opacity: 1;
+    transform: translateX(0);
+    visibility: visible;
+}
+
+#category-header button {
+    padding: 7px 10px;
+    border: none;
+    background: #ddd;
+    cursor: pointer;
+    border-radius: 3px;
+    font-size: 13px;
+}
+
+#category-header h4 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: bold;
+}
+
+/* === Block Panels (inside category wrapper) === */
+.block-panels {
+    position: relative;
+    overflow: hidden;
+    min-height: 120px;
+}
+
+.block-panel {
+    position: relative;
+    opacity: 1;
+    pointer-events: auto;
+}

@@ -1,52 +1,145 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-	<meta charset="UTF-8" />
-	<title>Page Builder</title>
-	<link href="resources/css/grapes/grapes.min.css" rel="stylesheet" />
-	<link href="resources/css/grapes/grapick.min.css" rel="stylesheet" />
-	<link href="resources/css/jquery/jquery-ui.css" rel="stylesheet" />
-	<link href="resources/style.css" rel="stylesheet" />
-</head>
-<body>
-	<div id="gjs"></div>
+	<head>
+		<meta charset="UTF-8">
+		<title>Drag-and-Drop Builder</title>
+		<link rel="stylesheet" href="resources/Style.css" type="text/css">
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.2/css/all.min.css">
 
-	<div id="template-modal">
-		<h4>Select a Template</h4>
-		<select id="template-select">
-			<option value="template-banner">Banners</option>
-			<option value="template-layouts">Layouts</option>
-			<option value="template-navbar">Navbar</option>
-		</select>
+		<script src="resources/Main.js"></script>
+	</head>
+	<body>
+	<div class="canvas-wrapper">
+		<div id="canvas-panel">
+			<div id="canvas-controller">
+				<span class="canvas-btn primary" title="Save and publish your layout">
+					<i class="fas fa-upload"></i> Publish
+				</span>
+				<span class="canvas-btn" title="Preview how the layout looks without editing tools">
+					<i class="fas fa-eye"></i> Preview
+				</span>
+				<span class="canvas-btn" title="Change the viewport size to simulate different devices">
+					<i class="fas fa-desktop"></i> Viewport
+				</span>
+				<span class="canvas-btn" title="Toggle dashed borders on compiled elements for layout visibility">
+					<i class="fas fa-border-style"></i> Toggle Borders
+				</span>
+			</div>
 
-		<div id="component-list"></div>
+			<div id="canvas">
+				<div class="droppable" id="drop-area">
+					<!-- Dropped components will appear here -->
+				</div>
+			</div>
+		</div>
 
-		<div class="template-modal-footer">
-			<button id="import-template">Import</button>
-			<button id="close-modal">Cancel</button>
+		<div id="toolbar">
+			<div class="tab-bar">
+				<div class="tab active" data-tab="blocks" title="Drag HTML elements to the canvas">
+					<i class="fas fa-toolbox"></i>
+				</div>
+				<div class="tab" data-tab="settings" title="Edit styles for selected element">
+					<i class="fas fa-cog"></i>
+				</div>
+				<div class="tab" data-tab="create" title="Create a new element or define custom class">
+					<i class="fas fa-plus"></i>
+				</div>
+				<div class="tab-underline"></div>
+			</div>
+
+			<!-- Blocks Tab -->
+			<div class="tab-content active" data-tab="blocks">
+				<!-- Category Navigation -->
+				<div class="block-categories" id="category-list">
+					<ul class="category-list">
+						<!-- Populated dynamically -->
+					</ul>
+				</div>
+
+				<!-- Panel Header (shown when a category is active) -->
+				<div class="category-wrapper">
+					<div id="category-header">
+						<button id="back-to-categories">← Back</button>
+						<h4 id="category-title"></h4>
+					</div>
+
+					<!-- Block Panels -->
+					<div class="block-panels">
+						<!-- Populated dynamically -->
+					</div>
+				</div>
+			</div>
+
+			<!-- Settings Tab -->
+			<div class="tab-content" data-tab="settings">
+				<h4>Element Settings</h4>
+				<div class="settings-placeholder">
+					<p>Select an element to edit its styles</p>
+					<!-- You can later populate this dynamically when a user selects an element -->
+				</div>
+			</div>
+
+			<!-- Create Tab -->
+			<div class="tab-content" data-tab="create">
+				<h4>Create New Element</h4>
+				<form id="create-element-form">
+					<label>
+						Element tag:
+						<input type="text" placeholder="e.g., div, span, section" />
+					</label>
+					<label>
+						Text content:
+						<input type="text" placeholder="Enter default text" />
+					</label>
+					<label>
+						Class name:
+						<input type="text" placeholder="Optional class name" />
+					</label>
+					<button type="submit">Create Element</button>
+				</form>
+
+				<h4>Create CSS Class</h4>
+				<form id="create-css-form">
+					<label>
+						Class name:
+						<input type="text" placeholder="e.g., .my-style" />
+					</label>
+					<label>
+						Property:
+						<input type="text" placeholder="e.g., color" />
+					</label>
+					<label>
+						Value:
+						<input type="text" placeholder="e.g., red" />
+					</label>
+					<button type="submit">Add Property</button>
+				</form>
+			</div>
 		</div>
 	</div>
+	<script>
+		blockManagerInit(manager => {
+			manager.setCategoryLabel('layouts', 'Layouts', 'fas fa-layer-group');
+			manager.setCategoryLabel('controls', 'Form Controls', 'fas fa-sliders-h');
+			manager.setCategoryLabel('components', 'Components', 'fas fa-cube');
+			manager.setCategoryLabel('content', 'Content', 'fas fa-newspaper');
 
-	<!-- JS Utilities -->
-	<script src="resources/js/jquery/jquery.min.js"></script>
-	<script src="resources/js/jquery/jquery.blockUI.js"></script>
-	<script src="resources/js/grapes/grapes.min.js"></script>
-	<script src="resources/js/grapes/grapesjs-preset-webpage.min.js"></script>
-	<script src="resources/js/grapes/grapesjs-blocks-basic.js"></script>
-	<script src="resources/js/grapes/grapesjs-plugin-forms.js"></script>
-	<script src="resources/js/grapes/grapesjs-component-countdown.js"></script>
-	<script src="resources/js/grapes/grapesjs-plugin-export.js"></script>
-	<script src="resources/js/grapes/grapesjs-tabs.js"></script>
-	<script src="resources/js/grapes/grapesjs-custom-code.js"></script>
-	<script src="resources/js/grapes/grapesjs-touch.js"></script>
-	<script src="resources/js/grapes/grapesjs-parser-postcss.js"></script>
-	<script src="resources/js/grapes/grapesjs-tooltip.js"></script>
-	<script src="resources/js/grapes/grapesjs-tui-image-editor.js"></script>
-	<script src="resources/js/grapes/grapesjs-typed.js"></script>
-	<script src="resources/js/grapes/grapesjs-style-bg.js"></script>
-	<script src="resources/js/grapes/grapesjs-code-editor.min.js"></script>
+			manager.register('layouts', { label: 'Row', type: 'div', context: 'Row' });
+			manager.register('layouts', { label: 'Section', type: 'section', context: 'Section' });
 
-	<!-- main JS as ES module -->
-	<script type="module" src="resources/main.js"></script>
-</body>
+			manager.register('controls', { label: 'Input', type: 'input', context: 'Type here' });
+			manager.register('controls', { label: 'Button', type: 'button', context: 'Click me' });
+
+			manager.register('components', { label: 'List', type: 'ul', context: 'List' });
+			manager.register('components', { label: 'Image', type: 'img', context: 'Image' });
+
+			manager.register('content', { label: 'Heading', type: 'h1', context: 'Header' });
+			manager.register('content', { label: 'Paragraph', type: 'p', context: 'Paragraph' });
+
+			manager.renderAll();
+		});
+
+		dropManagerInit('drop-area');
+	</script>
+	</body>
 </html>
