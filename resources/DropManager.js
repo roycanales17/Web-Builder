@@ -24,6 +24,8 @@ class DropManager {
 		zone.classList.add('droppable');
 
 		zone.addEventListener('dragover', e => {
+			this.toggleCompiledSpacing(true);
+
 			const targetZone = e.target.closest('.droppable');
 			if (targetZone !== zone) return;
 
@@ -82,6 +84,7 @@ class DropManager {
 		zone.addEventListener('drop', e => {
 			e.preventDefault();
 			this.hideDropLine();
+			this.toggleCompiledSpacing(false);
 			zone.classList.remove('drop-target-highlight');
 
 			const targetZone = e.target.closest('.droppable');
@@ -146,6 +149,8 @@ class DropManager {
 		el.setAttribute('draggable', 'true');
 
 		el.addEventListener('dragstart', e => {
+			this.toggleCompiledSpacing(true);
+
 			// ✅ Ensure only this specific element is being dragged
 			if (e.target !== el) return;
 
@@ -159,6 +164,8 @@ class DropManager {
 				this.draggedElement = el;
 			}
 		});
+
+		el.addEventListener('dragend', (e) => this.toggleCompiledSpacing(false));
 	}
 
 	insertSorted(container, newEl, dropTarget = null, dropPosition = null) {
@@ -199,6 +206,23 @@ class DropManager {
 
 	hideDropLine() {
 		this.dropLine.style.display = 'none';
+	}
+
+	toggleCompiledSpacing(status) {
+		// Add margin on dragging
+		if (status) {
+			const compiledElements = document.querySelectorAll('.compiled');
+			compiledElements.forEach(elm => {
+				elm.classList.add('drag-margin');
+			});
+
+			return;
+		}
+
+		const compiledElements = document.querySelectorAll('.compiled.drag-margin');
+		compiledElements.forEach(elm => {
+			elm.classList.remove('drag-margin');
+		});
 	}
 }
 

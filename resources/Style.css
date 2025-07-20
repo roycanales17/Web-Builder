@@ -132,11 +132,16 @@ body {
 }
 
 .compiled {
+    transition: margin 0.2s ease;
     border: 2px dashed #ddd;
 }
 
 .compiled.drag-highlight {
     border: 2px dashed #888;
+}
+
+.compiled.drag-margin {
+    margin: 10px !important;
 }
 
 /* === Drop Line Indicator === */
