@@ -47,7 +47,8 @@ class DropManager
 			}
 		});
 
-		el.addEventListener('dragend', () => {
+		document.addEventListener('dragend', e => {
+			this.hideDropLine();
 			this.toggleCompiledSpacing(false);
 			this.draggedElement = null;
 		});
