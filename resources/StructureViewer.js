@@ -12,22 +12,16 @@ export default class StructureViewer
 		}
 	}
 
-	/**
-	 * Initial load for structure view
-	 */
 	init() {
-		// Clear structureId attributes to force reassign
 		this.dropManager.root.querySelectorAll('.compiled').forEach(el => {
 			delete el.dataset.structureId;
 		});
 
-		// Add delay time for refreshing the structure viewer lists
 		const update = this.debounce(() => {
 			const structure = this.dropManager.getStructure();
 			this.render(structure);
 		}, 200);
 
-		// Rerender structure view if any changes was made on the canvas.
 		const observer = new MutationObserver(update);
 		observer.observe(this.dropManager.root, {
 			childList: true,
@@ -36,7 +30,6 @@ export default class StructureViewer
 			characterData: true
 		});
 
-		// Remove the focus highlights if outside the structure viewer lists
 		document.addEventListener('click', e => {
 			if (!this.container.contains(e.target)) {
 				this.clearFocus();
@@ -46,13 +39,7 @@ export default class StructureViewer
 		update();
 	}
 
-	/**
-	 * Renders the whole blocks of structure viewer lists
-	 *
-	 * @param structure
-	 */
 	render(structure) {
-		// ✅ Save the currently expanded nodes before wiping
 		this.expandedNodes.clear();
 		this.container.querySelectorAll('.structure-item').forEach(item => {
 			const id = item.dataset.elementId;
@@ -67,13 +54,11 @@ export default class StructureViewer
 		ul.className = 'structure-tree';
 		this.buildList(structure, ul);
 		this.container.appendChild(ul);
+		this.setupContainerDropHandler(ul);
 		this.setupDragAndDrop();
 		this.setupFocusListeners();
 	}
 
-	/**
-	 * Create a drop-line element for sorting view
-	 */
 	createDropLine() {
 		let line = document.getElementById('structure-drop-line');
 		if (!line) {
@@ -91,22 +76,13 @@ export default class StructureViewer
 		return line;
 	}
 
-	/**
-	 * Displays the compiled elements including nested DOM
-	 *
-	 * @param structure
-	 * @param parentEl
-	 */
 	buildList(structure, parentEl) {
 		structure.forEach(item => {
 			const li = document.createElement('li');
 			li.className = 'structure-item';
 			li.draggable = true;
-
-			// Unique identifier for compiled elements
 			li.dataset.elementId = item.element.dataset.structureId;
 
-			// Reference: DropManager.getStructure() function...
 			this.bufferedStructureItem[li.dataset.elementId] = {
 				tag: item.tag,
 				context: item.context,
@@ -119,7 +95,7 @@ export default class StructureViewer
 			const left = document.createElement('div');
 			left.className = 'structure-left';
 			left.innerHTML = `<span class="structure-label">${item.label || item.tag}</span>
-							  <small class="structure-tag">&lt;${item.tag}&gt;</small>`;
+						  <small class="structure-tag">&lt;${item.tag}&gt;</small>`;
 
 			const right = document.createElement('div');
 			right.className = 'structure-right';
@@ -141,8 +117,6 @@ export default class StructureViewer
 			if (item.children?.length > 0) {
 				const nestedUl = document.createElement('ul');
 				nestedUl.classList.add('structure-nested');
-
-				// ✅ Restore toggle state based on memory
 				const isExpanded = this.expandedNodes.has(li.dataset.elementId);
 				if (!isExpanded) {
 					nestedUl.classList.add('collapsed');
@@ -150,10 +124,8 @@ export default class StructureViewer
 				} else {
 					toggleBtn.innerHTML = '<i class="fas fa-chevron-down"></i>';
 				}
-
 				this.buildList(item.children, nestedUl);
 				li.appendChild(nestedUl);
-
 				toggleBtn.addEventListener('click', e => {
 					e.stopPropagation();
 					const isCollapsed = nestedUl.classList.toggle('collapsed');
@@ -161,7 +133,6 @@ export default class StructureViewer
 						? '<i class="fas fa-chevron-right"></i>'
 						: '<i class="fas fa-chevron-down"></i>';
 
-					// ✅ Track state
 					const id = li.dataset.elementId;
 					if (isCollapsed) {
 						this.expandedNodes.delete(id);
@@ -173,7 +144,6 @@ export default class StructureViewer
 				toggleBtn.style.visibility = 'hidden';
 			}
 
-			// ✅ Drag sort events inside structure panel
 			li.addEventListener('dragover', e => {
 				e.preventDefault();
 				const rect = li.getBoundingClientRect();
@@ -199,7 +169,6 @@ export default class StructureViewer
 					.find(el => el.dataset.structureId === id);
 
 				if (!compiledTarget) return;
-
 				const dragged = this.dropManager.draggedElement;
 				if (!dragged || dragged === compiledTarget || compiledTarget.contains(dragged)) return;
 
@@ -213,21 +182,55 @@ export default class StructureViewer
 		});
 	}
 
-	/**
-	 * Adds an event for dragging to each structure items
-	 */
+	setupContainerDropHandler(treeContainer) {
+		const firstItem = treeContainer.querySelector('.structure-item');
+
+		treeContainer.addEventListener('dragover', e => {
+			if (!firstItem || !this.dropManager.draggedElement) return;
+			const rect = firstItem.getBoundingClientRect();
+			const aboveFirst = e.clientY < rect.top;
+			if (aboveFirst) {
+				e.preventDefault();
+				this.dropLine.style.width = rect.width + 'px';
+				this.dropLine.style.left = rect.left + 'px';
+				this.dropLine.style.top = rect.top + 'px';
+				this.dropLine.style.display = 'block';
+				firstItem.dataset.dropPosition = 'above';
+				this.dropTarget = firstItem;
+			}
+		});
+
+		treeContainer.addEventListener('dragleave', () => {
+			this.dropLine.style.display = 'none';
+		});
+
+		treeContainer.addEventListener('drop', e => {
+			e.preventDefault();
+			this.dropLine.style.display = 'none';
+			const target = this.dropTarget;
+			const pos = target?.dataset.dropPosition;
+			const id = target?.dataset.elementId;
+			const compiledTarget = id
+				? Array.from(this.dropManager.root.querySelectorAll('.compiled')).find(el => el.dataset.structureId === id)
+				: null;
+
+			const dragged = this.dropManager.draggedElement;
+			if (!dragged || !compiledTarget || compiledTarget.contains(dragged) || compiledTarget === dragged) return;
+
+			if (pos === 'above' || pos === 'below') {
+				this.dropManager.insertSorted(compiledTarget.parentElement, dragged, compiledTarget, pos);
+				this.dropManager.draggedElement = null;
+				this.render(this.dropManager.getStructure());
+			}
+		});
+	}
+
 	setupDragAndDrop() {
 		const structureItems = this.container.querySelectorAll('.structure-item');
-
 		structureItems.forEach(item => {
 			item.addEventListener('dragstart', e => {
-				// ✅ Ignore nested triggers: only handle if target is this specific item
 				if (e.currentTarget !== e.target && !e.currentTarget.contains(e.target)) return;
-
-				// ✅ Stop bubbling
 				e.stopPropagation();
-
-				// 👻 Create drag ghost
 				const ghost = document.createElement('div');
 				ghost.textContent = item.querySelector('.structure-label')?.textContent || 'Dragging';
 				Object.assign(ghost.style, {
@@ -239,13 +242,12 @@ export default class StructureViewer
 					border: '1px solid #ccc',
 					borderRadius: '4px',
 					color: '#333',
-					fontSize: '12px',
+					fontSize: '12px'
 				});
 				document.body.appendChild(ghost);
 				e.dataTransfer.setDragImage(ghost, 0, 0);
 				setTimeout(() => document.body.removeChild(ghost), 0);
 
-				// 🎯 Find the compiled DOM element
 				const id = item.dataset.elementId;
 				const compiledEl = Array.from(this.dropManager.root.querySelectorAll('.compiled'))
 					.find(el => el.dataset.structureId === id);
@@ -260,21 +262,14 @@ export default class StructureViewer
 		});
 	}
 
-	/**
-	 * Event for structure items highlights.
-	 */
 	setupFocusListeners() {
 		this.container.addEventListener('click', e => {
 			if (e.target.closest('.structure-edit')) return;
-
 			const clickedRow = e.target.closest('.structure-row');
 			if (!clickedRow) return;
-
 			const clickedItem = clickedRow.closest('.structure-item');
 			if (!clickedItem) return;
-
 			this.clearFocus();
-
 			clickedItem.classList.add('focused');
 			clickedItem.querySelectorAll('.structure-item').forEach(child =>
 				child.classList.add('focused')
@@ -282,21 +277,11 @@ export default class StructureViewer
 		});
 	}
 
-	/**
-	 * Clear the highlights of each structure items
-	 */
 	clearFocus() {
 		this.container.querySelectorAll('.structure-item.focused')
 			.forEach(el => el.classList.remove('focused'));
 	}
 
-	/**
-	 * For delaying an action
-	 *
-	 * @param fn
-	 * @param delay
-	 * @returns {(function(...[*]): void)|*}
-	 */
 	debounce(fn, delay = 100) {
 		let timer;
 		return (...args) => {
