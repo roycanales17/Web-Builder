@@ -351,3 +351,12 @@ body {
     background-color: #d3e5ff;
     border-color: #6ba8ff;
 }
+
+#structure-drop-line {
+    position: absolute;
+    height: 2px;
+    background: #28a745;
+    z-index: 9999;
+    display: none;
+    pointer-events: none;
+}

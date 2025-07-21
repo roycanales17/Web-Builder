@@ -4,7 +4,8 @@ export default class StructureViewer
 		this.bufferedStructureItem = {};
 		this.container = document.getElementById(structureRootId);
 		this.dropManager = dropManager;
-		this.expandedNodes = new Set(); // ✅ Stores open/collapsed state
+		this.expandedNodes = new Set();
+		this.dropLine = this.createDropLine(); // ✅ Drop line for sorting
 
 		if (!this.container) {
 			console.warn(`StructureViewer: container #${structureRootId} not found`);
@@ -68,6 +69,26 @@ export default class StructureViewer
 		this.container.appendChild(ul);
 		this.setupDragAndDrop();
 		this.setupFocusListeners();
+	}
+
+	/**
+	 * Create a drop-line element for sorting view
+	 */
+	createDropLine() {
+		let line = document.getElementById('structure-drop-line');
+		if (!line) {
+			line = document.createElement('div');
+			line.id = 'structure-drop-line';
+			Object.assign(line.style, {
+				position: 'absolute',
+				height: '2px',
+				background: '#28a745',
+				zIndex: 9999,
+				display: 'none'
+			});
+			document.body.appendChild(line);
+		}
+		return line;
 	}
 
 	/**
@@ -151,6 +172,42 @@ export default class StructureViewer
 			} else {
 				toggleBtn.style.visibility = 'hidden';
 			}
+
+			// ✅ Drag sort events inside structure panel
+			li.addEventListener('dragover', e => {
+				e.preventDefault();
+				const rect = li.getBoundingClientRect();
+				const midY = rect.top + rect.height / 2;
+				const insertAbove = e.clientY < midY;
+				this.dropLine.style.width = rect.width + 'px';
+				this.dropLine.style.left = rect.left + 'px';
+				this.dropLine.style.top = (insertAbove ? rect.top : rect.bottom) + 'px';
+				this.dropLine.style.display = 'block';
+				li.dataset.dropPosition = insertAbove ? 'above' : 'below';
+				this.dropTarget = li;
+			});
+
+			li.addEventListener('dragleave', () => {
+				this.dropLine.style.display = 'none';
+			});
+
+			li.addEventListener('drop', e => {
+				e.preventDefault();
+				this.dropLine.style.display = 'none';
+				const id = li.dataset.elementId;
+				const compiledTarget = Array.from(this.dropManager.root.querySelectorAll('.compiled'))
+					.find(el => el.dataset.structureId === id);
+
+				if (!compiledTarget) return;
+
+				const dragged = this.dropManager.draggedElement;
+				if (!dragged || dragged === compiledTarget || compiledTarget.contains(dragged)) return;
+
+				const pos = li.dataset.dropPosition;
+				this.dropManager.insertSorted(compiledTarget.parentElement, dragged, compiledTarget, pos);
+				this.dropManager.draggedElement = null;
+				this.render(this.dropManager.getStructure());
+			});
 
 			parentEl.appendChild(li);
 		});
