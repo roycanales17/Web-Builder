@@ -46,8 +46,8 @@
 			// ✅ Wait until ready
 			const dropManager = await dropManagerInit('drop-area');
 
-			toolsManagerInit("toolbar", (tabManager) => {
-				tabManager.addTab({
+			toolsManagerInit("toolbar", (toolManager) => {
+				toolManager.addTab({
 					tab: 'blocks',
 					description: 'Drag HTML elements to the canvas',
 					icon: 'fas fa-toolbox',
@@ -75,13 +75,13 @@
 					}
 				});
 
-				tabManager.addTab({
+				toolManager.addTab({
 					tab: 'settings',
 					description: 'Edit styles for selected element',
 					icon: 'fas fa-cog'
 				});
 
-				tabManager.addTab({
+				toolManager.addTab({
 					tab: 'structure',
 					description: 'View and manage the DOM structure of the canvas',
 					icon: 'fas fa-sitemap',
@@ -91,7 +91,7 @@
 					}
 				});
 
-				tabManager.addTab({
+				toolManager.addTab({
 					tab: 'create',
 					description: 'Create a new element or define custom class',
 					icon: 'fas fa-plus'
