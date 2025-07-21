@@ -1,22 +1,31 @@
-export default class StructureViewer {
+export default class StructureViewer
+{
 	constructor(structureRootId, dropManager) {
+		this.bufferedStructureItem = {};
 		this.container = document.getElementById(structureRootId);
 		this.dropManager = dropManager;
-		this.draggedItem = null;
 
 		if (!this.container) {
 			console.warn(`StructureViewer: container #${structureRootId} not found`);
-			return;
 		}
 	}
 
+	/**
+	 * Initial load for structure view
+	 */
 	init() {
+		// Clear structureId attributes to force reassign
+		this.dropManager.root.querySelectorAll('.compiled').forEach(el => {
+			delete el.dataset.structureId;
+		});
+
+		// Add delay time for refreshing the structure viewer lists
 		const update = this.debounce(() => {
 			const structure = this.dropManager.getStructure();
 			this.render(structure);
 		}, 200);
 
-		// Watch for structure updates
+		// Rerender structure view if any changes was made on the canvas.
 		const observer = new MutationObserver(update);
 		observer.observe(this.dropManager.root, {
 			childList: true,
@@ -25,10 +34,21 @@ export default class StructureViewer {
 			characterData: true
 		});
 
-		// Initial render
+		// Remove the focus highlights if outside the structure viewer lists
+		document.addEventListener('click', e => {
+			if (!this.container.contains(e.target)) {
+				this.clearFocus();
+			}
+		});
+
 		update();
 	}
 
+	/**
+	 * Renders the whole blocks of structure viewer lists
+	 *
+	 * @param structure
+	 */
 	render(structure) {
 		this.container.innerHTML = '';
 		const ul = document.createElement('ul');
@@ -36,65 +56,163 @@ export default class StructureViewer {
 		this.buildList(structure, ul);
 		this.container.appendChild(ul);
 		this.setupDragAndDrop();
+		this.setupFocusListeners();
+
+		console.log(this.bufferedStructureItem);
 	}
 
+	/**
+	 * Displays the compiled elements including nested DOM
+	 *
+	 * @param structure
+	 * @param parentEl
+	 */
 	buildList(structure, parentEl) {
 		structure.forEach(item => {
 			const li = document.createElement('li');
 			li.className = 'structure-item';
 			li.draggable = true;
-			li.innerHTML = `<strong>${item.label || item.tag}</strong> <small>&lt;${item.tag}&gt;</small>`;
+
+			// Unique identifier for compiled elements
 			li.dataset.elementId = item.element.dataset.structureId;
 
-			if (item.children && item.children.length > 0) {
+			// Reference: DropManager.getStructure() function...
+			this.bufferedStructureItem[li.dataset.elementId] = {
+				tag: item.tag,
+				context: item.context,
+				label: item.label
+			};
+
+			const row = document.createElement('div');
+			row.className = 'structure-row';
+
+			const left = document.createElement('div');
+			left.className = 'structure-left';
+			left.innerHTML = `<span class="structure-label">${item.label || item.tag}</span>
+							  <small class="structure-tag">&lt;${item.tag}&gt;</small>`;
+
+			const right = document.createElement('div');
+			right.className = 'structure-right';
+
+			const toggleBtn = document.createElement('span');
+			toggleBtn.className = 'structure-toggle';
+			toggleBtn.innerHTML = '<i class="fas fa-chevron-right"></i>';
+
+			const editBtn = document.createElement('span');
+			editBtn.className = 'structure-edit';
+			editBtn.innerHTML = '<i class="fas fa-pen"></i>';
+
+			right.appendChild(toggleBtn);
+			right.appendChild(editBtn);
+			row.appendChild(left);
+			row.appendChild(right);
+			li.appendChild(row);
+
+			if (item.children?.length > 0) {
 				const nestedUl = document.createElement('ul');
+				nestedUl.classList.add('structure-nested', 'collapsed');
 				this.buildList(item.children, nestedUl);
 				li.appendChild(nestedUl);
+
+				toggleBtn.addEventListener('click', e => {
+					e.stopPropagation();
+					const isCollapsed = nestedUl.classList.toggle('collapsed');
+					toggleBtn.innerHTML = isCollapsed
+						? '<i class="fas fa-chevron-right"></i>'
+						: '<i class="fas fa-chevron-down"></i>';
+				});
+			} else {
+				toggleBtn.style.visibility = 'hidden';
 			}
 
 			parentEl.appendChild(li);
 		});
 	}
 
+	/**
+	 * Adds an event for dragging to each structure items
+	 */
 	setupDragAndDrop() {
-		this.container.querySelectorAll('.structure-item').forEach(item => {
+		const structureItems = this.container.querySelectorAll('.structure-item');
+
+		structureItems.forEach(item => {
 			item.addEventListener('dragstart', e => {
-				this.draggedItem = item;
-				e.dataTransfer.effectAllowed = 'move';
-			});
+				// ✅ Ignore nested triggers: only handle if target is this specific item
+				if (e.currentTarget !== e.target && !e.currentTarget.contains(e.target)) return;
 
-			item.addEventListener('dragover', e => {
-				e.preventDefault();
-				item.classList.add('drag-over');
-			});
+				// ✅ Stop bubbling
+				e.stopPropagation();
 
-			item.addEventListener('dragleave', () => {
-				item.classList.remove('drag-over');
-			});
+				// 👻 Create drag ghost
+				const ghost = document.createElement('div');
+				ghost.textContent = item.querySelector('.structure-label')?.textContent || 'Dragging';
+				Object.assign(ghost.style, {
+					position: 'absolute',
+					top: '-1000px',
+					left: '-1000px',
+					padding: '4px 8px',
+					background: '#eee',
+					border: '1px solid #ccc',
+					borderRadius: '4px',
+					color: '#333',
+					fontSize: '12px',
+				});
+				document.body.appendChild(ghost);
+				e.dataTransfer.setDragImage(ghost, 0, 0);
+				setTimeout(() => document.body.removeChild(ghost), 0);
 
-			item.addEventListener('drop', e => {
-				e.preventDefault();
-				item.classList.remove('drag-over');
+				// 🎯 Find the compiled DOM element
+				const id = item.dataset.elementId;
+				const compiledEl = Array.from(this.dropManager.root.querySelectorAll('.compiled'))
+					.find(el => el.dataset.structureId === id);
 
-				if (!this.draggedItem || this.draggedItem === item) return;
-
-				// Move in structure panel
-				item.parentNode.insertBefore(this.draggedItem, item.nextSibling);
-
-				// Move in canvas
-				const draggedId = this.draggedItem.dataset.elementId;
-				const targetId = item.dataset.elementId;
-
-				const draggedEl = document.querySelector(`[data-structure-id="${draggedId}"]`);
-				const targetEl = document.querySelector(`[data-structure-id="${targetId}"]`);
-
-				if (draggedEl && targetEl && draggedEl !== targetEl && targetEl.parentNode === draggedEl.parentNode) {
-					targetEl.parentNode.insertBefore(draggedEl, targetEl.nextSibling);
+				if (compiledEl) {
+					this.dropManager.draggedElement = compiledEl;
+					e.dataTransfer.setData('type', this.bufferedStructureItem[id].tag);
+					e.dataTransfer.setData('context', this.bufferedStructureItem[id].context);
+					e.dataTransfer.setData('label', this.bufferedStructureItem[id].label);
 				}
 			});
 		});
 	}
 
+	/**
+	 * Event for structure items highlights.
+	 */
+	setupFocusListeners() {
+		this.container.addEventListener('click', e => {
+			if (e.target.closest('.structure-edit')) return;
+
+			const clickedRow = e.target.closest('.structure-row');
+			if (!clickedRow) return;
+
+			const clickedItem = clickedRow.closest('.structure-item');
+			if (!clickedItem) return;
+
+			this.clearFocus();
+
+			clickedItem.classList.add('focused');
+			clickedItem.querySelectorAll('.structure-item').forEach(child =>
+				child.classList.add('focused')
+			);
+		});
+	}
+
+	/**
+	 * Clear the highlights of each structure items
+	 */
+	clearFocus() {
+		this.container.querySelectorAll('.structure-item.focused')
+			.forEach(el => el.classList.remove('focused'));
+	}
+
+	/**
+	 * For delaying an action
+	 *
+	 * @param fn
+	 * @param delay
+	 * @returns {(function(...[*]): void)|*}
+	 */
 	debounce(fn, delay = 100) {
 		let timer;
 		return (...args) => {

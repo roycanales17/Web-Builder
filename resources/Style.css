@@ -274,24 +274,80 @@ body {
 
 /* === Structure Panels === */
 .structure-tree {
-    list-style-type: none;
-    padding-left: 1rem;
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
 }
 
 .structure-item {
-    font-family: monospace;
-    padding: 4px;
-    margin: 2px 0;
-    cursor: grab;
+    margin: 0;
+    padding-left: 0;
 }
 
-.structure-item small {
+.structure-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background: #f9f9f9;
+    padding: 6px 10px;
+    margin: 4px 0;
+    gap: 10px;
+    cursor: pointer;
+}
+
+.structure-item.focused > .structure-row {
+    background-color: #e0f3ff;
+    border-color: #6db9ff;
+}
+
+.structure-left {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.structure-right {
+    display: flex;
+    gap: 10px;
+    margin-left: auto;
+}
+
+.structure-label {
+    font-weight: bold;
+    color: #333;
+}
+
+.structure-tag {
     color: #888;
-    margin-left: 6px;
+    font-size: 12px;
 }
 
-.structure-item.drag-over {
-    border: 1px dashed #42a5f5;
-    background: #e3f2fd;
+.structure-edit,
+.structure-toggle {
+    color: #666;
+    cursor: pointer;
 }
 
+.structure-edit i,
+.structure-toggle i {
+    pointer-events: none;
+    font-size: 13px;
+}
+
+.structure-nested {
+    padding-left: 0;
+    margin: 0;
+    list-style: none;
+}
+
+/* ✅ Default to hidden */
+.structure-nested.collapsed {
+    display: none;
+}
+
+.drag-over > .structure-row {
+    background-color: #d3e5ff;
+    border-color: #6ba8ff;
+}

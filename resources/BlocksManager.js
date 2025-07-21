@@ -1,4 +1,5 @@
-export class BlocksManager {
+export class BlocksManager
+{
 	constructor(identifier, options = {}) {
 		this.categories = {};
 		this.container = document.getElementById(identifier);
@@ -8,6 +9,9 @@ export class BlocksManager {
 		this.initBackButton();
 	}
 
+	/**
+	 * Generates an HTML for blocks
+	 */
 	initContainer() {
 		this.container.innerHTML = `
 			<div class="block-categories" id="category-list">
@@ -33,6 +37,12 @@ export class BlocksManager {
 	}
 
 
+	/**
+	 * Register a blocks
+	 *
+	 * @param category
+	 * @param block
+	 */
 	register(category, block) {
 		if (!this.categories[category]) {
 			this.categories[category] = {
@@ -44,6 +54,13 @@ export class BlocksManager {
 		this.categories[category].blocks.push(block);
 	}
 
+	/**
+	 * Register a categories
+	 *
+	 * @param category
+	 * @param label
+	 * @param icon
+	 */
 	setCategoryLabel(category, label, icon = 'fas fa-cube') {
 		if (!this.categories[category]) {
 			this.categories[category] = {
@@ -57,6 +74,9 @@ export class BlocksManager {
 		}
 	}
 
+	/**
+	 * Renders the categories
+	 */
 	renderCategories() {
 		const ul = document.createElement('ul');
 		ul.className = 'category-list';
@@ -77,6 +97,11 @@ export class BlocksManager {
 		this.categoryListEl.appendChild(ul);
 	}
 
+	/**
+	 * Renders the category panel
+	 *
+	 * @param categoryKey
+	 */
 	renderPanels(categoryKey) {
 		const panel = this.getOrCreatePanel();
 
@@ -93,6 +118,12 @@ export class BlocksManager {
 		});
 	}
 
+	/**
+	 * Handle category click function
+	 *
+	 * @param key
+	 * @param label
+	 */
 	handleCategoryClick(key, label) {
 		// Hide category list
 		this.categoryListEl.classList.add('hidden');
@@ -110,7 +141,11 @@ export class BlocksManager {
 		this.onCategoryChange(key);
 	}
 
-	// Helper: Only one visible panel
+	/**
+	 * Fetch/show the category panel
+	 *
+	 * @returns {*}
+	 */
 	getOrCreatePanel() {
 		let panel = this.blockPanelsEl.querySelector('.block-panel');
 		if (!panel) {
@@ -121,6 +156,9 @@ export class BlocksManager {
 		return panel;
 	}
 
+	/**
+	 * Category back button action
+	 */
 	initBackButton() {
 		this.backBtn.addEventListener('click', () => {
 			this.categoryWrapper.classList.remove('slide-in');
@@ -132,13 +170,20 @@ export class BlocksManager {
 		});
 	}
 
+	/**
+	 * Create block element for categories
+	 *
+	 * @param label - Element label for block
+	 * @param type - Element type
+	 * @param context - Block content (HTML)
+	 * @param thumbnail - Block thumbnail
+	 * @param attributes - Element attributes
+	 * @returns {HTMLDivElement}
+	 */
 	createBlockElement({ label, type, context, thumbnail, attributes = {} }) {
 		const div = document.createElement('div');
 		div.classList.add('block');
 		div.setAttribute('draggable', 'true');
-		div.setAttribute('data-label', label);
-		div.setAttribute('data-type', type);
-		div.setAttribute('data-context', context);
 		div.textContent = label;
 
 		// Apply extra attributes (like input type, placeholder, etc.)
@@ -156,6 +201,9 @@ export class BlocksManager {
 		return div;
 	}
 
+	/**
+	 * Toggle category panel
+	 */
 	renderAll() {
 		this.renderCategories();
 		this.renderPanels();
