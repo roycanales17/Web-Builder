@@ -68,8 +68,6 @@ export default class StructureViewer
 		this.container.appendChild(ul);
 		this.setupDragAndDrop();
 		this.setupFocusListeners();
-
-		console.log(this.bufferedStructureItem);
 	}
 
 	/**
@@ -196,7 +194,6 @@ export default class StructureViewer
 					.find(el => el.dataset.structureId === id);
 
 				if (compiledEl) {
-					console.log(compiledEl);
 					this.dropManager.draggedElement = compiledEl;
 					e.dataTransfer.setData('type', this.bufferedStructureItem[id].tag);
 					e.dataTransfer.setData('context', this.bufferedStructureItem[id].context);

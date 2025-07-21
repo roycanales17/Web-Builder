@@ -135,11 +135,6 @@ class DropManager
 
 				// ✅ Prevent invalid tag creation
 				if (!type || !/^[a-z]+[a-z0-9\-]*$/i.test(type)) {
-					console.log('drop', {
-						type: type,
-						context: context,
-						label: label
-					});
 					console.warn("Invalid or missing element type from toolbar.");
 					return;
 				}
@@ -157,8 +152,6 @@ class DropManager
 				this.makeDraggable(newElement);
 				this.initDropZone(newElement);
 				fromToolbar = true;
-
-				console.log('it is from toolbar...')
 			} else {
 				newElement = this.draggedElement;
 			}
