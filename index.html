@@ -78,7 +78,17 @@
 				toolManager.addTab({
 					tab: 'settings',
 					description: 'Edit styles for selected element',
-					icon: 'fas fa-cog'
+					icon: 'fas fa-cog',
+					fallback: () => {
+						dropManager.compiledClickedEvent(function (elem) {
+							toolManager.setActiveTab('settings', () => {
+								let html = 'This is a test!';
+
+
+								return html;
+							});
+						});
+					}
 				});
 
 				toolManager.addTab({

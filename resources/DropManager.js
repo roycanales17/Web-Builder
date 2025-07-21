@@ -271,6 +271,16 @@ class DropManager
 		);
 	}
 
+	compiledClickedEvent(callback) {
+		if (!this.root || typeof callback !== 'function') return;
+
+		this.root.addEventListener('click', e => {
+			const el = e.target.closest('.compiled');
+			if (!el || !this.root.contains(el)) return;
+			callback(el);
+		});
+	}
+
 	/**
 	 * Retrieves all the compiled elements from canvas.
 	 *
@@ -305,6 +315,7 @@ export default function init(root) {
 
 	return {
 		manager,
-		getStructure: () => manager.getStructure()
+		getStructure: () => manager.getStructure(),
+		compiledClickedEvent: (callback) => manager.compiledClickedEvent(callback)
 	};
 }

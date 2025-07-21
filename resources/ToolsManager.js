@@ -69,6 +69,22 @@ class ToolsManager {
 		this.underline.style.transform = `translateX(${offsetLeft}px)`;
 		this.underline.style.width = `${offsetWidth}px`;
 	}
+
+	setActiveTab(tabName, callback) {
+		const tabBtn = this.container.querySelector(`[data-tab="${tabName}"]`);
+		if (!tabBtn) return;
+
+		tabBtn.click(); // Trigger normal tab switching behavior
+		if (typeof callback === 'function') {
+			const html = callback();
+			if (typeof html === 'string') {
+				const contentPanel = document.querySelector(`.tab-content[data-tab="${tabName}"]`);
+				if (contentPanel) {
+					contentPanel.innerHTML = html;
+				}
+			}
+		}
+	}
 }
 
 export default function init(identifier) {
