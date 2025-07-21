@@ -4,6 +4,7 @@ export default class StructureViewer
 		this.bufferedStructureItem = {};
 		this.container = document.getElementById(structureRootId);
 		this.dropManager = dropManager;
+		this.expandedNodes = new Set(); // ✅ Stores open/collapsed state
 
 		if (!this.container) {
 			console.warn(`StructureViewer: container #${structureRootId} not found`);
@@ -50,6 +51,16 @@ export default class StructureViewer
 	 * @param structure
 	 */
 	render(structure) {
+		// ✅ Save the currently expanded nodes before wiping
+		this.expandedNodes.clear();
+		this.container.querySelectorAll('.structure-item').forEach(item => {
+			const id = item.dataset.elementId;
+			const nested = item.querySelector('.structure-nested');
+			if (nested && !nested.classList.contains('collapsed')) {
+				this.expandedNodes.add(id);
+			}
+		});
+
 		this.container.innerHTML = '';
 		const ul = document.createElement('ul');
 		ul.className = 'structure-tree';
@@ -110,7 +121,17 @@ export default class StructureViewer
 
 			if (item.children?.length > 0) {
 				const nestedUl = document.createElement('ul');
-				nestedUl.classList.add('structure-nested', 'collapsed');
+				nestedUl.classList.add('structure-nested');
+
+				// ✅ Restore toggle state based on memory
+				const isExpanded = this.expandedNodes.has(li.dataset.elementId);
+				if (!isExpanded) {
+					nestedUl.classList.add('collapsed');
+					toggleBtn.innerHTML = '<i class="fas fa-chevron-right"></i>';
+				} else {
+					toggleBtn.innerHTML = '<i class="fas fa-chevron-down"></i>';
+				}
+
 				this.buildList(item.children, nestedUl);
 				li.appendChild(nestedUl);
 
@@ -120,6 +141,14 @@ export default class StructureViewer
 					toggleBtn.innerHTML = isCollapsed
 						? '<i class="fas fa-chevron-right"></i>'
 						: '<i class="fas fa-chevron-down"></i>';
+
+					// ✅ Track state
+					const id = li.dataset.elementId;
+					if (isCollapsed) {
+						this.expandedNodes.delete(id);
+					} else {
+						this.expandedNodes.add(id);
+					}
 				});
 			} else {
 				toggleBtn.style.visibility = 'hidden';
@@ -167,6 +196,7 @@ export default class StructureViewer
 					.find(el => el.dataset.structureId === id);
 
 				if (compiledEl) {
+					console.log(compiledEl);
 					this.dropManager.draggedElement = compiledEl;
 					e.dataTransfer.setData('type', this.bufferedStructureItem[id].tag);
 					e.dataTransfer.setData('context', this.bufferedStructureItem[id].context);
