@@ -45,12 +45,12 @@ function blockManagerInit(identifier, callback) {
 	return getModule().then(module => callback(module.default(identifier)));
 }
 
-function tabManagerInit(identifier, callback) {
+function toolsManagerInit(identifier, callback) {
 	const getModule = (() => {
 		let modulePromise;
 		return () => {
 			if (!modulePromise) {
-				modulePromise = import('./TabManager.js');
+				modulePromise = import('./ToolsManager.js');
 			}
 			return modulePromise;
 		};

@@ -1,4 +1,4 @@
-class TabManager {
+class ToolsManager {
 	constructor(containerSelector) {
 		this.container = document.getElementById(containerSelector);
 		this.tabBar = document.createElement('div');
@@ -72,5 +72,5 @@ class TabManager {
 }
 
 export default function init(identifier) {
-	return new TabManager(identifier);
+	return new ToolsManager(identifier);
 }
