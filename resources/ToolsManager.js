@@ -18,7 +18,7 @@ class ToolsManager {
 		});
 	}
 
-	addTab({ tab, description, icon, contentIdentifier = '', fallback = null }) {
+	addTab({ tab, description, icon, contentIdentifier = '', build = null }) {
 		// Create the tab button
 		const tabEl = document.createElement('div');
 		tabEl.className = 'tab';
@@ -37,9 +37,9 @@ class ToolsManager {
 		this.container.appendChild(contentEl);
 		this.tabContents.push(contentEl);
 
-		// Execute fallback after tab and content are rendered
-		if (typeof fallback === 'function') {
-			requestAnimationFrame(() => fallback());
+		// Execute build after tab and content are rendered
+		if (typeof build === 'function') {
+			requestAnimationFrame(() => build());
 		}
 
 		// Activate the first tab
@@ -70,13 +70,15 @@ class ToolsManager {
 		this.underline.style.width = `${offsetWidth}px`;
 	}
 
-	setActiveTab(tabName, callback) {
+	async setActiveTab(tabName, callback) {
 		const tabBtn = this.container.querySelector(`[data-tab="${tabName}"]`);
 		if (!tabBtn) return;
 
 		tabBtn.click(); // Trigger normal tab switching behavior
+
 		if (typeof callback === 'function') {
-			const html = callback();
+			const html = await callback(); // Await the result of async/sync callback
+
 			if (typeof html === 'string') {
 				const contentPanel = document.querySelector(`.tab-content[data-tab="${tabName}"]`);
 				if (contentPanel) {

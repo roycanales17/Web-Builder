@@ -52,7 +52,7 @@
 					description: 'Drag HTML elements to the canvas',
 					icon: 'fas fa-toolbox',
 					contentIdentifier: 'blocks-content',
-					fallback: () => {
+					build: () => {
 						blockManagerInit('blocks-content', blockManager => {
 							blockManager.setCategoryLabel('layouts', 'Layouts', 'fas fa-layer-group');
 							blockManager.register('layouts', { label: 'Row', type: 'div', context: 'Row' });
@@ -79,7 +79,7 @@
 					tab: 'settings',
 					description: 'Edit styles for selected element',
 					icon: 'fas fa-cog',
-					fallback: () => {
+					build: () => {
 						dropManager.compiledClickedEvent(function (elem) {
 							toolManager.setActiveTab('settings', () => {
 								let html = 'This is a test!';
@@ -96,7 +96,7 @@
 					description: 'View and manage the DOM structure of the canvas',
 					icon: 'fas fa-sitemap',
 					contentIdentifier: 'structure-content',
-					fallback: () => {
+					build: () => {
 						structureView('structure-content', dropManager.manager);
 					}
 				});
