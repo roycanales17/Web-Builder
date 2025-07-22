@@ -74,7 +74,7 @@ class ToolsManager {
 		const tabBtn = this.container.querySelector(`[data-tab="${tabName}"]`);
 		if (!tabBtn) return;
 
-		tabBtn.click(); // Trigger normal tab switching behavior
+		tabBtn.click();
 
 		if (typeof callback === 'function') {
 			const html = await callback(); // Await the result of async/sync callback
