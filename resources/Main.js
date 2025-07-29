@@ -17,6 +17,23 @@ function structureView(identifier, dropManager) {
 	});
 }
 
+function elementEditor(element, root) {
+	const getModule = (() => {
+		let modulePromise;
+		return () => {
+			if (!modulePromise) {
+				modulePromise = import('./ElementPropertiesEditor.js');
+			}
+			return modulePromise;
+		};
+	})();
+
+	return getModule().then(module => {
+		const EditorClass = module.default;
+		return new EditorClass(element, root);
+	});
+}
+
 function dropManagerInit(identifier) {
 	const getModule = (() => {
 		let modulePromise;

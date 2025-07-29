@@ -6,6 +6,10 @@ body {
     font-family: sans-serif;
 }
 
+.display-none {
+    display: none !important;
+}
+
 /* === Main Layout === */
 .canvas-wrapper {
     display: flex;
@@ -111,6 +115,7 @@ body {
 .tab-content {
     display: none;
     padding: 10px;
+    overflow: auto;
 }
 
 .tab-content.active {
@@ -359,4 +364,178 @@ body {
     z-index: 9999;
     display: none;
     pointer-events: none;
+}
+
+.editor-content {
+    display: flex;
+    flex-direction: column;
+    gap: 5px
+}
+
+.editor-type {
+    display: flex;
+    flex-direction: row;
+    gap: 5px;
+    margin-bottom: 10px;
+}
+
+.editor-type button {
+    background-color: #E0E0E0;
+    border-radius: 4px;
+    padding: 5px 10px;
+    border: 1px solid #cccccc;
+    color: #171717;
+    font-weight: 500;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.editor-type button.active {
+    border: 2px solid #42a5f5;
+}
+
+.editor-selector {
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background: #f9f9f9;
+    padding: 8px 10px;
+    text-align: center;
+    vertical-align: middle;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 1px;
+    cursor: pointer;
+}
+
+.editor-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 5px;
+}
+
+.editor-head label {
+    font-weight: bold;
+}
+
+.editor-head label > span {
+    font-size: smaller;
+    color: gray;
+}
+
+.editor-head button {
+    padding: 7px 10px;
+    border: none;
+    background: #ddd;
+    cursor: pointer;
+    border-radius: 3px;
+    font-size: 13px;
+}
+
+.editor-separator {
+    margin: 15px 0;
+}
+
+[data-editor-field] {
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+.editor-control {
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    gap: 5px;
+}
+
+.editor-control label {
+    font-size: 11px;
+}
+
+.editor-field-selector {
+    font-family: sans-serif;
+    width: 100%;
+    padding: 10px;
+    background-color: #ffffff;
+    color: #4d4d4d;
+    border-radius: 4px;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    cursor: pointer;
+    border-color: #cccccc;
+
+    /* White caret icon using SVG as background */
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg width='10' height='6' viewBox='0 0 10 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%234d4d4d'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 10px;
+}
+
+.editor-control .editor-field-selector {
+    height: 27px;
+    padding: 5px;
+}
+
+.editor-field-text {
+    font-family: sans-serif;
+    width: 100%;
+    padding: 5px;
+    background-color: #ffffff;
+    color: #4d4d4d;
+    border-radius: 4px;
+    border: 1px solid #cccccc;
+    box-sizing: border-box;
+}
+
+.group-flex {
+    margin-top: 10px;
+}
+
+.editor-group {
+    font-family: sans-serif;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background-color: #EBEBEB;
+    border: 1px solid #d3d3d3;
+    border-radius: 4px;
+    padding: 12px 10px 12px 10px;
+    font-size: 14px;
+}
+
+.editor-group .group-header {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    color: #4d4d4d;
+    font-weight: bolder;
+}
+
+.group-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.editor-group-property {
+    background: #d3d3d3;
+    padding: 8px;
+    border-radius: 4px;
+}
+
+.editor-group-property .group-grid {
+    margin-top: 5px;
+}
+
+#editor-type-content {
+    border-top: 1px solid gray;
+    padding-top: 10px;
+}
+
+.editor-selectors {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }

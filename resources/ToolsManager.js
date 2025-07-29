@@ -1,4 +1,5 @@
-class ToolsManager {
+class ToolsManager
+{
 	constructor(containerSelector) {
 		this.container = document.getElementById(containerSelector);
 		this.tabBar = document.createElement('div');
@@ -70,22 +71,11 @@ class ToolsManager {
 		this.underline.style.width = `${offsetWidth}px`;
 	}
 
-	async setActiveTab(tabName, callback) {
+	async setActiveTab(tabName) {
 		const tabBtn = this.container.querySelector(`[data-tab="${tabName}"]`);
 		if (!tabBtn) return;
 
 		tabBtn.click();
-
-		if (typeof callback === 'function') {
-			const html = await callback(); // Await the result of async/sync callback
-
-			if (typeof html === 'string') {
-				const contentPanel = document.querySelector(`.tab-content[data-tab="${tabName}"]`);
-				if (contentPanel) {
-					contentPanel.innerHTML = html;
-				}
-			}
-		}
 	}
 }
 

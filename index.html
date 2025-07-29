@@ -79,13 +79,12 @@
 					tab: 'settings',
 					description: 'Edit styles for selected element',
 					icon: 'fas fa-cog',
+					contentIdentifier: 'setting-content',
 					build: () => {
 						dropManager.compiledClickedEvent(function (elem) {
-							toolManager.setActiveTab('settings', async () => {
-								const editor = await elementEditor(elem);
-								return editor.build();
-							});
-						})
+							toolManager.setActiveTab('settings');
+							elementEditor(elem, 'setting-content');
+						});
 					}
 				});
 
