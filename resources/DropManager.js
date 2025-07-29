@@ -65,6 +65,7 @@ class DropManager
 
 		zone.addEventListener('dragover', e => {
 			this.toggleCompiledSpacing(true);
+
 			const targetZone = e.target.closest('.droppable');
 			if (targetZone !== zone) return;
 			e.preventDefault();
@@ -108,16 +109,15 @@ class DropManager
 		});
 
 		zone.addEventListener('dragleave', e => {
-			const relatedZone = e.relatedTarget?.closest('.droppable');
-			if (relatedZone !== zone) {
-				this.toggleHighlight(zone, false);
-				this.hideDropLine();
-				zone.classList.remove('drop-target-highlight');
-			}
+			this.toggleCompiledSpacing(false);
+			this.toggleHighlight(zone, false);
+			this.hideDropLine();
+			zone.classList.remove('drop-target-highlight');
 		});
 
 		zone.addEventListener('drop', e => {
 			e.preventDefault();
+
 			this.hideDropLine();
 			this.toggleCompiledSpacing(false);
 			this.toggleHighlight(zone, false);
