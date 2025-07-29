@@ -134,20 +134,16 @@ body {
 /* === Droppable Area === */
 .droppable {
     min-height: 100%;
-    transition: border-color 0.2s ease;
+    transition: border-color 0.2s ease, margin 0.2s ease;
+    border: 2px dashed #ddd;
     padding: 10px;
 }
 
-.compiled {
-    transition: margin 0.2s ease;
-    border: 2px dashed #ddd;
-}
-
-.compiled.drag-highlight {
+.droppable.drag-highlight {
     border: 2px dashed #888;
 }
 
-.compiled.drag-margin {
+.droppable.drag-margin {
     margin: 10px !important;
 }
 

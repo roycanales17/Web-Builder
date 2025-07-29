@@ -18,14 +18,16 @@ export default class ElementPropertiesEditor
 	setting() {
 		return {
 			'styles': {
-				html: () => {
+				html: () =>
+				{
+					const identifier = this.element.getAttribute('data-structure-id');
 					const selectors = this.getSelectors().map(
-						selector => `<div class="editor-selector">${selector}</div>`
+						selector => `<div class="editor-selector" data-selector-value="${selector}">${selector}</div>`
 					).join('');
 
 					return `
 						<div class="editor-selectors">
-							<div class="editor-selector">Inline Style</div>
+							<div class="editor-selector" data-selector-value="inline-${identifier}">Inline Style</div>
 							${selectors}
 						</div>
 						<div class="style-manager editors display-none"> 

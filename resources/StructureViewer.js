@@ -13,7 +13,7 @@ export default class StructureViewer
 	}
 
 	init() {
-		this.dropManager.root.querySelectorAll('.compiled').forEach(el => {
+		this.dropManager.root.querySelectorAll('.droppable').forEach(el => {
 			delete el.dataset.structureId;
 		});
 
@@ -165,7 +165,7 @@ export default class StructureViewer
 				e.preventDefault();
 				this.dropLine.style.display = 'none';
 				const id = li.dataset.elementId;
-				const compiledTarget = Array.from(this.dropManager.root.querySelectorAll('.compiled'))
+				const compiledTarget = Array.from(this.dropManager.root.querySelectorAll('.droppable'))
 					.find(el => el.dataset.structureId === id);
 
 				if (!compiledTarget) return;
@@ -211,7 +211,7 @@ export default class StructureViewer
 			const pos = target?.dataset.dropPosition;
 			const id = target?.dataset.elementId;
 			const compiledTarget = id
-				? Array.from(this.dropManager.root.querySelectorAll('.compiled')).find(el => el.dataset.structureId === id)
+				? Array.from(this.dropManager.root.querySelectorAll('.droppable')).find(el => el.dataset.structureId === id)
 				: null;
 
 			const dragged = this.dropManager.draggedElement;
@@ -249,7 +249,7 @@ export default class StructureViewer
 				setTimeout(() => document.body.removeChild(ghost), 0);
 
 				const id = item.dataset.elementId;
-				const compiledEl = Array.from(this.dropManager.root.querySelectorAll('.compiled'))
+				const compiledEl = Array.from(this.dropManager.root.querySelectorAll('.droppable'))
 					.find(el => el.dataset.structureId === id);
 
 				if (compiledEl) {

@@ -172,7 +172,6 @@ class DropManager
 
 				newElement = document.createElement(type);
 				newElement.textContent = context;
-				newElement.classList.add('compiled');
 				newElement.setAttribute('draggable', 'true');
 				newElement.setAttribute('data-buffer', JSON.stringify({
 					'label': label,
@@ -224,7 +223,7 @@ class DropManager
 	 */
 	toggleHighlight(zone, status) {
 		zone.style.borderColor = status ? '#aaa' : '#ddd';
-		zone.querySelectorAll('.compiled').forEach(el =>
+		zone.querySelectorAll('.droppable').forEach(el =>
 			el.classList.toggle('drag-highlight', status)
 		);
 	}
@@ -297,7 +296,7 @@ class DropManager
 	 * @param status
 	 */
 	toggleCompiledSpacing(status) {
-		document.querySelectorAll('.compiled').forEach(el =>
+		document.querySelectorAll('.droppable').forEach(el =>
 			el.classList.toggle('drag-margin', status)
 		);
 	}
@@ -306,7 +305,7 @@ class DropManager
 		if (!this.root || typeof callback !== 'function') return;
 
 		this.root.addEventListener('click', e => {
-			const el = e.target.closest('.compiled');
+			const el = e.target.closest('.droppable');
 			if (!el || !this.root.contains(el)) return;
 			callback(el);
 		});
@@ -319,7 +318,7 @@ class DropManager
 	 */
 	getStructure() {
 		const traverse = node => {
-			const compiledChildren = Array.from(node.children).filter(child => child.classList.contains('compiled'));
+			const compiledChildren = Array.from(node.children).filter(child => child.classList.contains('droppable'));
 
 			return compiledChildren.map(child => {
 				if (!child.dataset.structureId) {
