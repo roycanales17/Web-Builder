@@ -71,34 +71,64 @@ class DropManager
 			e.preventDefault();
 
 			const children = Array.from(zone.children).filter(c => c !== this.draggedElement);
-			let closestChild = null;
-			let minOffset = Infinity;
+			if (children.length === 0) {
+				this.hideDropLine();
+				zone.classList.add('drop-target-highlight');
+				this.toggleHighlight(zone, true);
+				return;
+			}
+
+			let closestX = null;
+			let closestY = null;
+			let minXDist = Infinity;
+			let minYDist = Infinity;
+
+			const cursorX = e.clientX;
+			const cursorY = e.clientY;
 
 			for (let child of children) {
 				const rect = child.getBoundingClientRect();
-				const isFullWidth = (rect.width / zone.clientWidth) > 0.95;
-				const offset = isFullWidth
-					? Math.abs(rect.top + rect.height / 2 - e.clientY)
-					: Math.abs(rect.left + rect.width / 2 - e.clientX);
 
-				if (offset < minOffset) {
-					minOffset = offset;
-					closestChild = child;
+				// Check horizontal (X axis)
+				const yWithinBounds = cursorY >= rect.top && cursorY <= rect.bottom;
+				if (yWithinBounds) {
+					const xDist = Math.abs(cursorX - (rect.left + rect.width / 2));
+					if (xDist < minXDist) {
+						minXDist = xDist;
+						closestX = { el: child, rect };
+					}
+				}
+
+				// Check vertical (Y axis)
+				const xWithinBounds = cursorX >= rect.left && cursorX <= rect.right;
+				if (xWithinBounds) {
+					const yDist = Math.abs(cursorY - (rect.top + rect.height / 2));
+					if (yDist < minYDist) {
+						minYDist = yDist;
+						closestY = { el: child, rect };
+					}
 				}
 			}
 
-			if (closestChild) {
-				const rect = closestChild.getBoundingClientRect();
-				const isFullWidth = (rect.width / zone.clientWidth) > 0.95;
+			let finalTarget = null;
+			let position = null;
 
-				const useHorizontal = !isFullWidth;
-				const position = useHorizontal
-					? (e.clientX < rect.left + rect.width / 2 ? 'left' : 'right')
-					: (e.clientY < rect.top + rect.height / 2 ? 'above' : 'below');
+			if (closestX && (!closestY || minYDist > 10)) {
+				// Use X-axis
+				finalTarget = closestX.el;
+				const rect = closestX.rect;
+				position = cursorX < rect.left + rect.width / 2 ? 'left' : 'right';
+			} else if (closestY) {
+				// Use Y-axis
+				finalTarget = closestY.el;
+				const rect = closestY.rect;
+				position = cursorY < rect.top + rect.height / 2 ? 'above' : 'below';
+			}
 
-				this.showDropLine(closestChild, position);
+			if (finalTarget) {
+				this.showDropLine(finalTarget, position);
 				zone.classList.remove('drop-target-highlight');
-				this.lastDropTarget = closestChild;
+				this.lastDropTarget = finalTarget;
 				this.lastDropPosition = position;
 			} else {
 				this.hideDropLine();
