@@ -4,9 +4,10 @@
   "description": "Run The Application ```shell npx serve . ```",
   "main": "index.js",
   "scripts": {
-    "dev": "npm-run-all --parallel watch js:watch serve",
+    "dev": "npm-run-all --parallel watch js:watch main:watch serve",
     "watch": "npx tailwindcss -i src/tailwind.css -o dist/utilities.css --watch",
-    "js:watch": "esbuild src/main.js --bundle --minify --outfile=dist/main.js --watch",
+    "js:watch": "esbuild src/icons.js --bundle --minify --outfile=dist/icons.js --watch",
+    "main:watch": "esbuild src/main.js --bundle --minify --outfile=dist/main.js --watch",
     "serve": "live-server"
   },
   "repository": {
