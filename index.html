@@ -56,10 +56,10 @@
 		</div>
 
 		<!-- Wrapper -->
-		<div class="flex flex-row h-full bg-[#FAFAFA]">
+		<div class="flex flex-row h-full min-h-0 bg-[#FAFAFA]">
 
 			<!-- Canvas -->
-			<div class="flex justify-center items-center w-full h-full p-4">
+			<div class="flex justify-center items-center w-full h-full p-4 min-h-0">
 				<div id="drop-zone" class="h-full w-full max-w-full bg-white shadow-sm mx-auto transition-all duration-300 ease-in-out">
 					<div id="drop-zone-skeleton" class="h-full w-full flex flex-col items-center justify-center gap-4">
 						<div class="w-20 h-20 border-2 border-dashed border-neutral-300 flex items-center justify-center rounded-2xl">
@@ -71,7 +71,7 @@
 			</div>
 
 			<!-- Configurations -->
-			<div class="flex flex-col h-full w-[320px] border border-gray-200">
+			<div class="flex flex-col h-full w-[320px] border border-gray-200 relative">
 
 				<!-- Tab -->
 				<div class="flex flex-row gap-1 justify-around w-full text-gray-500 py-1 px-2 bg-[#F2F2F2] border-b border-[hsl(0,0%,90%)] rounded-none">
@@ -82,10 +82,10 @@
 				</div>
 
 				<!-- content -->
-				<div class="flex-1 overflow-y-auto bg-[#FCFCFC] min-h-0">
+				<div class="flex-1 overflow-y-auto bg-[#FCFCFC] min-h-0 pb-3">
 
 					<!-- Blocks Manager -->
-					<div class="hidden flex-col h-full [&.active]:flex active" data-tab="blocks">
+					<div class="hidden flex-col overflow-y-auto [&.active]:flex active" data-tab="blocks">
 
 						<!-- Blocks Header -->
 						<div class="flex flex-col gap-1 px-3 py-4 border-b border-gray-200">
@@ -264,10 +264,11 @@
 
 						</div>
 					</div>
+
 				</div>
 
 				<!-- Code -->
-				<div class="flex flex-row justify-between items-center h-10 w-full border-t border-gray-200 font-medium text-xs pl-1 pr-3 py-5">
+				<div class="absolute bottom-0 right-0 z-10 flex flex-row justify-between items-center h-10 w-full border-t border-gray-200 font-medium text-xs pl-1 pr-3 py-5 bg-[#FCFCFC]">
 					<button class="btn">
 						<i class="fas fa-code w-4 h-4 mr-3"></i>
 						View Code
