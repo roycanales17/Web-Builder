@@ -71,3 +71,17 @@ body {
     width: auto;
 }
 
+.droppable.drop-target-highlight {
+    outline: 2px dashed limegreen;
+    outline-offset: -2px;
+}
+
+#drop-line {
+    position: absolute;
+    height: 2px;
+    background: limegreen;
+    pointer-events: none;
+    z-index: 9999;
+    display: none;
+    transition: all 0.08s ease-in-out;
+}

@@ -16,12 +16,32 @@ import {
 	faArrowsAlt,
 	faHandPointer,
 	faGripLines,
-	faGripVertical
+	faGripVertical,
+	faColumns,
+	faObjectGroup,
+	faTh,
+	faICursor,
+	faMousePointer,
+	faCheckSquare,
+	faCaretDown,
+	faAlignLeft,
+	faListUl,
+	faImage,
+	faStar,
+	faMinus,
+	faHeading,
+	faQuoteLeft,
+	faVideo,
+	faMusic,
+	faFolder,
+	faBars,
+	faImages,
+	faBorderNone,
+	faExpand // ⬅️ added
 } from '@fortawesome/free-solid-svg-icons';
 
 import { library, dom } from '@fortawesome/fontawesome-svg-core';
 
-// Add all icons to the library
 library.add(
 	faDesktop,
 	faTabletScreenButton,
@@ -40,8 +60,29 @@ library.add(
 	faArrowsAlt,
 	faHandPointer,
 	faGripLines,
-	faGripVertical
+	faGripVertical,
+	faColumns,
+	faObjectGroup,
+	faTh,
+	faICursor,
+	faMousePointer,
+	faCheckSquare,
+	faCaretDown,
+	faAlignLeft,
+	faListUl,
+	faImage,
+	faStar,
+	faMinus,
+	faHeading,
+	faQuoteLeft,
+	faVideo,
+	faMusic,
+	faFolder,
+	faBars,
+	faImages,
+	faBorderNone,
+	faExpand // ⬅️ added
 );
 
-// Convert <i> elements to inline SVGs
+// Convert <i> tags into inline SVGs
 dom.watch();
