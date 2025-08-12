@@ -72,14 +72,14 @@ body {
 }
 
 .droppable.with-border {
-    transition: border-color 0.2s ease, margin 0.2s ease;
-    border: 2px dashed #ddd;
-    padding: 10px;
+    transition: border-color 0.2s ease, margin 0.2s ease !important;
+    border: 2px dashed #ddd !important;
+    padding: 10px !important;
 }
 
 .droppable.drop-target-highlight {
-    outline: 2px dashed limegreen;
-    outline-offset: -2px;
+    outline: 2px dashed limegreen !important;
+    outline-offset: -2px !important;
 }
 
 .droppable.drag-margin {
