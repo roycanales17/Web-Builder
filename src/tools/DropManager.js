@@ -9,6 +9,7 @@ class DropManager
 		this.lastDropPosition = null;
 		this.draggedElement = null;
 		this.structureIdCounter = 0;
+		this.withBorders = false;
 
 		// History manager
 		this.historyManager = new HistoryManager(this.root);
@@ -73,6 +74,9 @@ class DropManager
 
 	initDropZone(zone) {
 		zone.classList.add('droppable');
+		if (this.withBorders) {
+			zone.classList.add('with-border');
+		}
 
 		zone.addEventListener('dragover', e => {
 			this.toggleCompiledSpacing(true);
@@ -274,10 +278,24 @@ class DropManager
 		this.dropLine.style.display = 'none';
 	}
 
+	toggleBorders(status) {
+		document.querySelectorAll('.droppable').forEach(el => {
+			el.classList.toggle('with-border', status);
+		});
+
+		this.withBorders = status;
+	}
+
+	togglePadding(status) {
+		this.padding = status;
+	}
+
 	toggleCompiledSpacing(status) {
-		document.querySelectorAll('.droppable').forEach(el =>
-			el.classList.toggle('drag-margin', status)
-		);
+		document.querySelectorAll('.droppable').forEach(el => {
+			if (this.padding) {
+				el.classList.toggle('drag-margin', status)
+			}
+		});
 	}
 
 	compiledClickedEvent(callback) {
@@ -319,6 +337,8 @@ export default function init(root) {
 	return {
 		manager,
 		getStructure: () => manager.getStructure(),
+		togglePadding: (status) => manager.togglePadding(status),
+		toggleBorders: (status) => manager.toggleBorders(status),
 		compiledClickedEvent: (callback) => manager.compiledClickedEvent(callback)
-	};
+	}
 }

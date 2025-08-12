@@ -1,5 +1,7 @@
 const canvas_area = document.getElementById('drop-zone');
 const viewport_actions = document.querySelectorAll('[data-viewport]');
+const toolbar_btn_padding = document.getElementById('btn-toolbar-padding');
+const toolbar_btn_borders = document.getElementById('btn-toolbar-borders');
 
 function showConfiguration(tabName) {
 	// Hide all tab contents
@@ -85,8 +87,7 @@ document.querySelectorAll('[data-tab-target]').forEach(button => {
 	});
 });
 
-document.addEventListener('DOMContentLoaded', async function ()
-{
+document.addEventListener('DOMContentLoaded', async function () {
 	const dropManager = await dropManagerInit('drop-zone');
 
 	blockManagerInit('blocks-panel', blockManager => {
@@ -132,6 +133,16 @@ document.addEventListener('DOMContentLoaded', async function ()
 		});
 
 		blockManager.renderAll();
+	});
+
+	toolbar_btn_borders.addEventListener('click', () => {
+		const isActive = toolbar_btn_borders.classList.toggle('active');
+		dropManager.toggleBorders(isActive);
+	});
+
+	toolbar_btn_padding.addEventListener('click', () => {
+		const isActive = toolbar_btn_padding.classList.toggle('active');
+		dropManager.togglePadding(isActive);
 	});
 });
 
