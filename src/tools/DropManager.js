@@ -1,9 +1,10 @@
 import HistoryManager from './HistoryManager.js';
 
-class DropManager
-{
+class DropManager {
 	constructor(root, skeleton) {
 		this.root = root;
+		this.skeletonId = skeleton?.id || `${root}-skeleton`;
+		this.skeletonTemplate = skeleton ? skeleton.cloneNode(true) : null;
 		this.skeleton = skeleton;
 		this.lastDropTarget = null;
 		this.lastDropPosition = null;
@@ -41,9 +42,38 @@ class DropManager
 		});
 	}
 
+	/**
+	 * Ensures skeleton is shown if canvas is empty,
+	 * hidden/removed otherwise.
+	 */
+	updateSkeleton() {
+		if (!this.skeletonTemplate) return;
+
+		const hasRealChildren = Array.from(this.root.children)
+			.some(c => c.id !== this.skeletonId && c.id !== 'drop-line');
+
+		if (hasRealChildren) {
+			// remove live skeleton if it exists
+			const liveSkeleton = this.root.querySelector(`#${this.skeletonId}`);
+			if (liveSkeleton) {
+				liveSkeleton.remove();
+				this.skeleton = null;
+			}
+		} else {
+			// restore skeleton if missing
+			if (!this.root.querySelector(`#${this.skeletonId}`)) {
+				this.skeleton = this.skeletonTemplate.cloneNode(true);
+				this.root.appendChild(this.skeleton);
+			}
+		}
+	}
+
 	rebind() {
 		this.root.querySelectorAll('.droppable').forEach(zone => this.initDropZone(zone));
 		this.root.querySelectorAll('[draggable="true"]').forEach(el => this.makeDraggable(el));
+
+		// Check skeleton after undo/redo
+		this.updateSkeleton();
 	}
 
 	makeDraggable(el) {
@@ -181,7 +211,7 @@ class DropManager
 				}
 
 				newElement = document.createElement(type);
-				newElement.textContent = context;
+				newElement.innerHTML = context;
 				newElement.setAttribute('draggable', 'true');
 				newElement.setAttribute('data-buffer', JSON.stringify({
 					'label': label,
@@ -214,15 +244,10 @@ class DropManager
 
 			this.insertSorted(zone, newElement, this.lastDropTarget, this.lastDropPosition);
 
-			// Skeleton hide
-			if (this.skeleton && zone.contains(this.skeleton)) {
-				const nonSkeletonChildren = Array.from(zone.children).filter(c => c !== this.skeleton);
-				if (nonSkeletonChildren.length > 0) {
-					this.skeleton.remove();
-				}
-			}
+			// Remove skeleton after first drop
+			this.updateSkeleton();
 
-			// save after drop
+			// Save state
 			this.historyManager.saveState();
 
 			this.draggedElement = null;
@@ -293,7 +318,7 @@ class DropManager
 	toggleCompiledSpacing(status) {
 		document.querySelectorAll('.droppable').forEach(el => {
 			if (this.padding) {
-				el.classList.toggle('drag-margin', status)
+				el.classList.toggle('drag-margin', status);
 			}
 		});
 	}

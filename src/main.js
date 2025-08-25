@@ -1,7 +1,8 @@
 const canvas_area = document.getElementById('drop-zone');
 const viewport_actions = document.querySelectorAll('[data-viewport]');
-const toolbar_btn_padding = document.getElementById('btn-toolbar-padding');
-const toolbar_btn_borders = document.getElementById('btn-toolbar-borders');
+// const toolbar_btn_padding = document.getElementById('btn-toolbar-padding');
+// const toolbar_btn_borders = document.getElementById('btn-toolbar-borders');
+const toolbar_debug_canva = document.getElementById('btn-toolbar-debug');
 
 function showConfiguration(tabName) {
 	// Hide all tab contents
@@ -99,11 +100,11 @@ document.addEventListener('DOMContentLoaded', async function () {
 		});
 
 		blockManager.createPanel('controls', 'Form Controls', (block) => {
-			block.register({ label: 'Input', icon: 'fas fa-i-cursor', type: 'input', context: 'Type here' });
-			block.register({ label: 'Button', icon: 'fas fa-mouse-pointer', type: 'button', context: 'Click me' });
-			block.register({ label: 'Checkbox', icon: 'fas fa-check-square', type: 'input', context: 'Checkbox' });
-			block.register({ label: 'Select', icon: 'fas fa-caret-down', type: 'select', context: 'Select Option' });
-			block.register({ label: 'Textarea', icon: 'fas fa-align-left', type: 'textarea', context: 'Write something...' });
+			block.register({ label: 'Input', icon: 'fas fa-i-cursor', type: 'input', context: '<input type="text" placeholder="Type here..." />' });
+			block.register({ label: 'Button', icon: 'fas fa-mouse-pointer', type: 'button', context: '<input type="button" value="Click Me" />' });
+			block.register({ label: 'Checkbox', icon: 'fas fa-check-square', type: 'input', context: '<input type="checkbox" />' });
+			block.register({ label: 'Select', icon: 'fas fa-caret-down', type: 'select', context: '<select></select>' });
+			block.register({ label: 'Textarea', icon: 'fas fa-align-left', type: 'textarea', context: '<textarea></textarea>' });
 		});
 
 		blockManager.createPanel('components', 'Components', (block) => {
@@ -135,15 +136,22 @@ document.addEventListener('DOMContentLoaded', async function () {
 		blockManager.renderAll();
 	});
 
-	toolbar_btn_borders.addEventListener('click', () => {
-		const isActive = toolbar_btn_borders.classList.toggle('active');
+	toolbar_debug_canva.addEventListener('click', () => {
+		const isActive = toolbar_debug_canva.classList.toggle('active');
+
+		dropManager.togglePadding(isActive);
 		dropManager.toggleBorders(isActive);
 	});
 
-	toolbar_btn_padding.addEventListener('click', () => {
-		const isActive = toolbar_btn_padding.classList.toggle('active');
-		dropManager.togglePadding(isActive);
-	});
+	// toolbar_btn_borders.addEventListener('click', () => {
+	// 	const isActive = toolbar_btn_borders.classList.toggle('active');
+	// 	dropManager.toggleBorders(isActive);
+	// });
+	//
+	// toolbar_btn_padding.addEventListener('click', () => {
+	// 	const isActive = toolbar_btn_padding.classList.toggle('active');
+	// 	dropManager.togglePadding(isActive);
+	// });
 });
 
 
