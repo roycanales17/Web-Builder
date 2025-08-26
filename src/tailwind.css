@@ -71,21 +71,6 @@ body {
     width: auto;
 }
 
-.droppable.with-border {
-    transition: all 0.2s ease !important;
-    border: 2px dashed #ddd !important;
-    padding: 10px !important;
-}
-
-.droppable.drop-target-highlight {
-    outline: 2px dashed limegreen !important;
-    outline-offset: -2px !important;
-}
-
-.droppable.drag-margin {
-    margin: 10px !important;
-}
-
 #drop-line {
     position: absolute;
     height: 2px;

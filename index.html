@@ -69,12 +69,30 @@
 			<!-- Canvas -->
 			<div class="flex justify-center items-center w-full h-full p-4 min-h-0">
 				<div id="drop-zone" class="h-full w-full max-w-full bg-white shadow-sm mx-auto transition-all duration-300 ease-in-out">
-					<div id="drop-zone-skeleton" class="h-full w-full flex flex-col items-center justify-center gap-4">
-						<div class="w-20 h-20 border-2 border-dashed border-neutral-300 flex items-center justify-center rounded-2xl">
-							<i class="fas fa-plus text-3xl text-gray-400"></i>
-						</div>
-						<label class="text-neutral-400 text-sm">Drag components here to start building</label>
-					</div>
+
+					<!-- Iframe -->
+					<iframe id="drop-zone-iframe" class="h-full w-full"
+							srcdoc='
+						  <!DOCTYPE html>
+						  <html lang="en">
+							<head>
+							  <title>Website Builder</title>
+							  <link rel="stylesheet" href="src/buffer/style.css">
+							</head>
+							<body>
+							  <!-- Skeleton -->
+							  <div id="drop-zone-skeleton">
+								<div id="drop-zone-box">
+								  <i id="drop-zone-plus" class="fas fa-plus"></i>
+								</div>
+								<label id="drop-zone-label">Drag components here to start building</label>
+							  </div>
+							  <!-- JS -->
+							  <script src="src/buffer/main.js"></script>
+							</body>
+						  </html>'>
+					</iframe>
+
 				</div>
 			</div>
 
