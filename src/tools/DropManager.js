@@ -344,21 +344,21 @@ class DropManager {
 				const type = e.dataTransfer.getData('type');
 				const context = e.dataTransfer.getData('context');
 				const label = e.dataTransfer.getData('label') || context || type;
+
 				if (!type || !/^[a-z]+[a-z0-9\-]*$/i.test(type)) {
 					console.warn("Invalid or missing element type from toolbar.");
 					return;
 				}
 
 				newElement = this.doc.createElement(type);
-				newElement.innerHTML = context;
 				newElement.setAttribute('draggable', 'true');
 				newElement.setAttribute('data-buffer', JSON.stringify({
-					label: label,
-					type: type,
-					context: context
+					label,
+					type,
+					context
 				}));
 
-				// prepare newly-created element (inside iframe)
+				newElement.innerText = label;
 				this.makeDraggable(newElement);
 				this.initDropZone(newElement);
 				fromToolbar = true;
