@@ -149,12 +149,12 @@ document.addEventListener('DOMContentLoaded', async function () {
 		const doc = drop_zone_iframe.contentDocument || drop_zone_iframe.contentWindow.document;
 		let html = doc.documentElement.outerHTML;
 
-		// 🔹 Remove editor-only attributes
+		// Remove editor-only attributes
 		html = html.replace(/\sdata-buffer="[^"]*"/g, '');
 		html = html.replace(/\sdraggable="[^"]*"/g, '');
 		html = html.replace(/\sstyle="[^"]*"/g, '');
 
-		// 🔹 Remove editor-only classes
+		// Remove editor-only classes
 		const classesToRemove = ["droppable", "with-border", "draggable", "drop-target-highlight", "drag-margin"];
 		const classRegex = new RegExp(`\\sclass="([^"]*?)"`, "g");
 
@@ -166,10 +166,10 @@ document.addEventListener('DOMContentLoaded', async function () {
 			return cleaned ? ` class="${cleaned}"` : "";
 		});
 
-		// 🔹 Remove drop-line element
+		// Remove drop-line element
 		html = html.replace(/<div[^>]*id="drop-line"[^>]*>[\s\S]*?<\/div>/gi, '');
 
-		// ✅ Inject <base> so style.css & main.js resolve correctly
+		// Inject <base> so style.css & main.js resolve correctly
 		const baseUrl = window.location.origin + "/src/buffer/";
 		html = html.replace(/(<head[^>]*>)/i, `$1<base href="${baseUrl}">`);
 
@@ -179,12 +179,12 @@ document.addEventListener('DOMContentLoaded', async function () {
 		previewWindow.document.write(html);
 		previewWindow.document.close();
 
-		// 🔹 ESC closes preview
+		// ESC closes preview
 		previewWindow.addEventListener('keydown', (e) => {
 			if (e.key === 'Escape') previewWindow.close();
 		});
 
-		// 🔹 Floating ESC notice
+		// Floating ESC notice
 		previewWindow.addEventListener('DOMContentLoaded', () => {
 			const banner = previewWindow.document.createElement('div');
 			banner.id = "esc-banner";
