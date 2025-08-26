@@ -1,7 +1,5 @@
 const canvas_area = document.getElementById('drop-zone');
 const viewport_actions = document.querySelectorAll('[data-viewport]');
-// const toolbar_btn_padding = document.getElementById('btn-toolbar-padding');
-// const toolbar_btn_borders = document.getElementById('btn-toolbar-borders');
 const toolbar_btn_debug = document.getElementById('btn-toolbar-debug');
 const toolbar_btn_preview = document.getElementById('btn-toolbar-preview');
 const drop_zone_iframe = document.getElementById('drop-zone-iframe');
@@ -154,7 +152,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 		// 🔹 Remove editor-only attributes
 		html = html.replace(/\sdata-buffer="[^"]*"/g, '');
 		html = html.replace(/\sdraggable="[^"]*"/g, '');
-		html = html.replace(/\sstyle="[^"]*"/g, ''); // 🚀 remove inline styles
+		html = html.replace(/\sstyle="[^"]*"/g, '');
 
 		// 🔹 Remove editor-only classes
 		const classesToRemove = ["droppable", "with-border", "draggable", "drop-target-highlight", "drag-margin"];
@@ -171,6 +169,10 @@ document.addEventListener('DOMContentLoaded', async function () {
 		// 🔹 Remove drop-line element
 		html = html.replace(/<div[^>]*id="drop-line"[^>]*>[\s\S]*?<\/div>/gi, '');
 
+		// ✅ Inject <base> so style.css & main.js resolve correctly
+		const baseUrl = window.location.origin + "/src/buffer/";
+		html = html.replace(/(<head[^>]*>)/i, `$1<base href="${baseUrl}">`);
+
 		// Open preview window
 		const previewWindow = window.open('', '_blank');
 		previewWindow.document.open();
@@ -184,30 +186,6 @@ document.addEventListener('DOMContentLoaded', async function () {
 
 		// 🔹 Floating ESC notice
 		previewWindow.addEventListener('DOMContentLoaded', () => {
-			const style = previewWindow.document.createElement('style');
-			style.textContent = `
-				#esc-banner {
-					position: fixed;
-					bottom: 20px;
-					left: 50%;
-					transform: translateX(-50%);
-					background: rgba(0,0,0,0.85);
-					color: #fff;
-					padding: 10px 18px;
-					border-radius: 8px;
-					font-family: sans-serif;
-					font-size: 14px;
-					opacity: 0;
-					transition: opacity 0.5s ease-in-out;
-					z-index: 9999;
-					pointer-events: none;
-				}
-				#esc-banner.show {
-					opacity: 1;
-				}
-			`;
-			previewWindow.document.head.appendChild(style);
-
 			const banner = previewWindow.document.createElement('div');
 			banner.id = "esc-banner";
 			banner.textContent = "Press ESC to exit preview";
@@ -218,18 +196,6 @@ document.addEventListener('DOMContentLoaded', async function () {
 			setTimeout(() => banner.remove(), 5000);
 		});
 	});
-
-
-
-	// toolbar_btn_borders.addEventListener('click', () => {
-	// 	const isActive = toolbar_btn_borders.classList.toggle('active');
-	// 	dropManager.toggleBorders(isActive);
-	// });
-	//
-	// toolbar_btn_padding.addEventListener('click', () => {
-	// 	const isActive = toolbar_btn_padding.classList.toggle('active');
-	// 	dropManager.togglePadding(isActive);
-	// });
 });
 
 
