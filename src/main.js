@@ -2,7 +2,9 @@ const canvas_area = document.getElementById('drop-zone');
 const viewport_actions = document.querySelectorAll('[data-viewport]');
 // const toolbar_btn_padding = document.getElementById('btn-toolbar-padding');
 // const toolbar_btn_borders = document.getElementById('btn-toolbar-borders');
-const toolbar_debug_canva = document.getElementById('btn-toolbar-debug');
+const toolbar_btn_debug = document.getElementById('btn-toolbar-debug');
+const toolbar_btn_preview = document.getElementById('btn-toolbar-preview');
+const drop_zone_iframe = document.getElementById('drop-zone-iframe');
 
 function showConfiguration(tabName) {
 	// Hide all tab contents
@@ -136,12 +138,88 @@ document.addEventListener('DOMContentLoaded', async function () {
 		blockManager.renderAll();
 	});
 
-	toolbar_debug_canva.addEventListener('click', () => {
-		const isActive = toolbar_debug_canva.classList.toggle('active');
+	toolbar_btn_debug.addEventListener('click', () => {
+		const isActive = toolbar_btn_debug.classList.toggle('active');
 
 		dropManager.togglePadding(isActive);
 		dropManager.toggleBorders(isActive);
 	});
+
+	toolbar_btn_preview.addEventListener('click', () => {
+		if (!drop_zone_iframe) return;
+
+		const doc = drop_zone_iframe.contentDocument || drop_zone_iframe.contentWindow.document;
+		let html = doc.documentElement.outerHTML;
+
+		// 🔹 Remove editor-only attributes
+		html = html.replace(/\sdata-buffer="[^"]*"/g, '');
+		html = html.replace(/\sdraggable="[^"]*"/g, '');
+		html = html.replace(/\sstyle="[^"]*"/g, ''); // 🚀 remove inline styles
+
+		// 🔹 Remove editor-only classes
+		const classesToRemove = ["droppable", "with-border", "draggable", "drop-target-highlight", "drag-margin"];
+		const classRegex = new RegExp(`\\sclass="([^"]*?)"`, "g");
+
+		html = html.replace(classRegex, (match, classList) => {
+			const cleaned = classList
+				.split(/\s+/)
+				.filter(c => !classesToRemove.includes(c))
+				.join(" ");
+			return cleaned ? ` class="${cleaned}"` : "";
+		});
+
+		// 🔹 Remove drop-line element
+		html = html.replace(/<div[^>]*id="drop-line"[^>]*>[\s\S]*?<\/div>/gi, '');
+
+		// Open preview window
+		const previewWindow = window.open('', '_blank');
+		previewWindow.document.open();
+		previewWindow.document.write(html);
+		previewWindow.document.close();
+
+		// 🔹 ESC closes preview
+		previewWindow.addEventListener('keydown', (e) => {
+			if (e.key === 'Escape') previewWindow.close();
+		});
+
+		// 🔹 Floating ESC notice
+		previewWindow.addEventListener('DOMContentLoaded', () => {
+			const style = previewWindow.document.createElement('style');
+			style.textContent = `
+				#esc-banner {
+					position: fixed;
+					bottom: 20px;
+					left: 50%;
+					transform: translateX(-50%);
+					background: rgba(0,0,0,0.85);
+					color: #fff;
+					padding: 10px 18px;
+					border-radius: 8px;
+					font-family: sans-serif;
+					font-size: 14px;
+					opacity: 0;
+					transition: opacity 0.5s ease-in-out;
+					z-index: 9999;
+					pointer-events: none;
+				}
+				#esc-banner.show {
+					opacity: 1;
+				}
+			`;
+			previewWindow.document.head.appendChild(style);
+
+			const banner = previewWindow.document.createElement('div');
+			banner.id = "esc-banner";
+			banner.textContent = "Press ESC to exit preview";
+			previewWindow.document.body.appendChild(banner);
+
+			setTimeout(() => banner.classList.add("show"), 100);
+			setTimeout(() => banner.classList.remove("show"), 4000);
+			setTimeout(() => banner.remove(), 5000);
+		});
+	});
+
+
 
 	// toolbar_btn_borders.addEventListener('click', () => {
 	// 	const isActive = toolbar_btn_borders.classList.toggle('active');

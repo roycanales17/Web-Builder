@@ -61,10 +61,6 @@ class DropManager {
 
 		// defensive normalized styles inside iframe
 		try {
-			this.doc.documentElement.style.height = '100%';
-			this.doc.body.style.height = '100%';
-			this.doc.documentElement.style.margin = '0';
-			this.doc.body.style.margin = '0';
 			// ensure body is positioned so absolutely-positioned dropLine works predictably
 			if (getComputedStyle(this.doc.body).position === 'static') {
 				this.doc.body.style.position = 'relative';
@@ -132,6 +128,7 @@ class DropManager {
 		// ensure skeleton is correct on init (again, after rebind)
 		this.updateSkeleton();
 
+		console.log('done ...');
 		return true;
 	}
 
