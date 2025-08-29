@@ -28,6 +28,23 @@ function showConfiguration(tabName) {
 	}
 }
 
+function structureView(identifier, dropManager) {
+	const getModule = (() => {
+		let modulePromise;
+		return () => {
+			if (!modulePromise) {
+				modulePromise = import('./tools/StructureViewer.js');
+			}
+			return modulePromise;
+		};
+	})();
+
+	return getModule().then(module => {
+		const StructureViewer = module.default;
+		return new StructureViewer(identifier, dropManager);
+	});
+}
+
 function blockManagerInit(identifier, callback) {
 	const getModule = (() => {
 		let modulePromise;
@@ -90,6 +107,9 @@ document.querySelectorAll('[data-tab-target]').forEach(button => {
 
 document.addEventListener('DOMContentLoaded', async function () {
 	const dropManager = await dropManagerInit('drop-zone');
+	const structuralView = await structureView('structural-blocks', dropManager.manager);
+
+	console.log(structuralView);
 
 	blockManagerInit('blocks-panel', blockManager => {
 		blockManager.createPanel('layouts', 'Layouts', (block) => {
