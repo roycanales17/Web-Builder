@@ -82,7 +82,6 @@ export class BlocksManager
 
 	renderAll() {
 		this.renderBlockPanels(this.categories);
-		console.log(this.categories)
 	}
 }
 
