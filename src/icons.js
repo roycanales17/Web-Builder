@@ -37,7 +37,9 @@ import {
 	faBars,
 	faImages,
 	faBorderNone,
-	faExpand // ⬅️ added
+	faExpand,
+	faUpDownLeftRight,
+	faEyeSlash
 } from '@fortawesome/free-solid-svg-icons';
 
 import { library, dom } from '@fortawesome/fontawesome-svg-core';
@@ -81,7 +83,9 @@ library.add(
 	faBars,
 	faImages,
 	faBorderNone,
-	faExpand // ⬅️ added
+	faExpand,
+	faUpDownLeftRight,
+	faEyeSlash
 );
 
 // Convert <i> tags into inline SVGs

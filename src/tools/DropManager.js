@@ -1,7 +1,7 @@
-// DropManager.js
 import HistoryManager from './HistoryManager.js';
 
 class DropManager {
+
 	constructor(rootId) {
 		// parent container element (the div that holds the iframe)
 		this.parentRoot = document.getElementById(rootId);
@@ -128,7 +128,6 @@ class DropManager {
 		// ensure skeleton is correct on init (again, after rebind)
 		this.updateSkeleton();
 
-		console.log('done ...');
 		return true;
 	}
 
@@ -510,9 +509,18 @@ class DropManager {
 	}
 
 	getStructure() {
-		if (!this.doc) return [];
+		if (!this.doc || !this.doc.body) return [];
 		const traverse = node => {
-			const compiledChildren = Array.from(node.children).filter(child => child.classList.contains('droppable'));
+
+			// Guard
+			if (!node || !node.children) return [];
+
+			const compiledChildren = Array.from(node.children).filter(child => {
+				if (child.id === this.skeletonId) return false; // skip skeleton
+				if (child.id === 'drop-line') return false;    // skip drop-line
+				return child.classList.contains('droppable');
+			});
+
 			return compiledChildren.map(child => {
 				if (!child.dataset.structureId) {
 					child.dataset.structureId = `node-${++this.structureIdCounter}`;

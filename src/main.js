@@ -107,9 +107,7 @@ document.querySelectorAll('[data-tab-target]').forEach(button => {
 
 document.addEventListener('DOMContentLoaded', async function () {
 	const dropManager = await dropManagerInit('drop-zone');
-	const structuralView = await structureView('structural-blocks', dropManager.manager);
-
-	console.log(structuralView);
+	await structureView('structural-blocks', dropManager.manager);
 
 	blockManagerInit('blocks-panel', blockManager => {
 		blockManager.createPanel('layouts', 'Layouts', (block) => {
