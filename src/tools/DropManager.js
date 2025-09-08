@@ -1,8 +1,7 @@
 import HistoryManager from './HistoryManager.js';
 
 class DropManager {
-
-	constructor(rootId) {
+	constructor(rootId, blockClassName) {
 		// parent container element (the div that holds the iframe)
 		this.parentRoot = document.getElementById(rootId);
 		if (!this.parentRoot) throw new Error(`Missing parent root: ${rootId}`);
@@ -25,12 +24,13 @@ class DropManager {
 		this.structureIdCounter = 0;
 		this.withBorders = false;
 		this.padding = false;
+		this.blockClassName = blockClassName;
 
 		// handlers bound for stable add/remove
 		this._onGlobalDragEnd = this._onGlobalDragEnd.bind(this);
 
 		// make toolbar items in parent draggable immediately (toolbar lives in parent)
-		document.querySelectorAll('.item-block').forEach(block => this.makeDraggable(block));
+		document.querySelectorAll(`.${this.blockClassName}`).forEach(block => this.makeDraggable(block));
 
 		// keyboard for undo/redo (historyManager will be attached once iframe ready)
 		document.addEventListener('keydown', e => {
@@ -75,13 +75,14 @@ class DropManager {
 			this.skeletonTemplate = this.skeleton.cloneNode(true);
 		} else {
 			// Fallback: create a minimal skeleton if the srcdoc didn't include it.
-			const fallback = this.doc.createElement('div');
-			fallback.id = this.skeletonId;
+			// const fallback = this.doc.createElement('div');
+			// fallback.id = this.skeletonId;
+
 			// keep minimal content to avoid visual glitch
-			fallback.innerHTML = `<div style="padding:24px;color:#666;text-align:center">Drag components here</div>`;
-			this.doc.body.appendChild(fallback);
-			this.skeleton = fallback;
-			this.skeletonTemplate = fallback.cloneNode(true);
+			// fallback.innerHTML = `<div style="padding:24px;color:#666;text-align:center">Drag components here</div>`;
+			// this.doc.body.appendChild(fallback);
+			// this.skeleton = fallback;
+			// this.skeletonTemplate = fallback.cloneNode(true);
 		}
 
 		// ✅ Ensure skeleton state is updated before history snapshot
@@ -101,7 +102,7 @@ class DropManager {
 				pointerEvents: 'none',
 				zIndex: '9999',
 				// visible styling (adjust if you like)
-				background: '#4a90e2',
+				background: 'limegreen',
 				transition: 'opacity 120ms linear',
 			});
 			this.doc.body.appendChild(this.dropLine);
@@ -214,7 +215,7 @@ class DropManager {
 			if (e.target !== el) return;
 
 			const bufferData = this.safeParseJSON(el.getAttribute && el.getAttribute('data-buffer'));
-			const isToolbarItem = el.classList && el.classList.contains('item-block');
+			const isToolbarItem = el.classList && el.classList.contains(this.blockClassName);
 			if (isToolbarItem) {
 				// toolbar items live in parent; carry their buffer data through dataTransfer
 				e.dataTransfer.setData('type', bufferData.type || '');
@@ -387,6 +388,11 @@ class DropManager {
 			this.draggedElement = null;
 			this.lastDropTarget = null;
 			this.lastDropPosition = null;
+
+			// Fire the iframe listener
+			if (this.callback) {
+				this.callback(this.getStructure());
+			}
 		});
 	}
 
@@ -537,6 +543,10 @@ class DropManager {
 		};
 		return traverse(this.doc.body);
 	}
+
+	onStructureChange(callback) {
+		this.callback = callback;
+	}
 }
 
 /**
@@ -544,11 +554,12 @@ class DropManager {
  * rootId should be the id string of the parent container that also contains
  * the iframe with id `${rootId}-iframe`.
  */
-export default function init(rootId) {
-	const manager = new DropManager(rootId);
+export default function init(rootId, blockClassName) {
+	const manager = new DropManager(rootId, blockClassName);
 	return {
 		manager,
-		getStructure: () => manager.getStructure(),
+		makeDraggable: (el) => manager.makeDraggable(el),
+		onStructureChange: (callback) => manager.onStructureChange(callback),
 		togglePadding: (status) => manager.togglePadding(status),
 		toggleBorders: (status) => manager.toggleBorders(status),
 		compiledClickedEvent: (callback) => manager.compiledClickedEvent(callback)

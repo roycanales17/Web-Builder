@@ -59,7 +59,7 @@ function blockManagerInit(identifier, callback) {
 	return getModule().then(module => callback(module.default(identifier)));
 }
 
-function dropManagerInit(identifier) {
+function dropManagerInit(identifier, blockClassName = 'item-block') {
 	const getModule = (() => {
 		let modulePromise;
 		return () => {
@@ -70,7 +70,7 @@ function dropManagerInit(identifier) {
 		};
 	})();
 
-	return getModule().then(module => module.default(identifier));
+	return getModule().then(module => module.default(identifier, blockClassName));
 }
 
 viewport_actions.forEach(button => {
@@ -107,7 +107,11 @@ document.querySelectorAll('[data-tab-target]').forEach(button => {
 
 document.addEventListener('DOMContentLoaded', async function () {
 	const dropManager = await dropManagerInit('drop-zone');
-	await structureView('structural-blocks', dropManager.manager);
+	const structureTree = await structureView('structural-blocks', dropManager.manager);
+
+	dropManager.onStructureChange((structure) => {
+		structureTree.updateTree(structure);
+	});
 
 	blockManagerInit('blocks-panel', blockManager => {
 		blockManager.createPanel('layouts', 'Layouts', (block) => {
