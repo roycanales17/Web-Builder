@@ -81,20 +81,36 @@ export default class StructureViewer {
 		const childrenWrapper = document.createElement("div");
 		childrenWrapper.className = "structure-children hidden";
 
+		// --- Restore expanded state ---
+		if (this.expandedNodes.has(block.dataset.elementId)) {
+			childrenWrapper.classList.remove("hidden");
+		}
+
 		if (hasChildren) {
 			const eyeSpan = document.createElement("span");
-			eyeSpan.innerHTML = `<i class="fas fa-eye-slash structure-eye"></i>`;
+
+			// --- Correct initial icon based on expanded state ---
+			if (this.expandedNodes.has(block.dataset.elementId)) {
+				eyeSpan.innerHTML = `<i class="fas fa-eye structure-eye"></i>`;
+			} else {
+				eyeSpan.innerHTML = `<i class="fas fa-eye-slash structure-eye"></i>`;
+			}
+
 			eyeSpan.addEventListener("click", (ev) => {
 				ev.stopPropagation();
 				const isHidden = childrenWrapper.classList.contains("hidden");
+
 				if (isHidden) {
 					childrenWrapper.classList.remove("hidden");
 					eyeSpan.innerHTML = `<i class="fas fa-eye structure-eye"></i>`;
+					this.expandedNodes.add(block.dataset.elementId);   // ✅ remember expanded
 				} else {
 					childrenWrapper.classList.add("hidden");
 					eyeSpan.innerHTML = `<i class="fas fa-eye-slash structure-eye"></i>`;
+					this.expandedNodes.delete(block.dataset.elementId); // ✅ forget collapsed
 				}
 			});
+
 			actions.appendChild(eyeSpan);
 		}
 
