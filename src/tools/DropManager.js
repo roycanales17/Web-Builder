@@ -65,24 +65,12 @@ class DropManager {
 			if (getComputedStyle(this.doc.body).position === 'static') {
 				this.doc.body.style.position = 'relative';
 			}
-		} catch (err) {
-			// ignore cross-origin or styling issues (shouldn't happen for srcdoc)
-		}
+		} catch (err) {}
 
 		// skeleton inside iframe (if present) -> clone into template so updateSkeleton works
 		this.skeleton = this.doc.getElementById(this.skeletonId);
 		if (this.skeleton) {
 			this.skeletonTemplate = this.skeleton.cloneNode(true);
-		} else {
-			// Fallback: create a minimal skeleton if the srcdoc didn't include it.
-			// const fallback = this.doc.createElement('div');
-			// fallback.id = this.skeletonId;
-
-			// keep minimal content to avoid visual glitch
-			// fallback.innerHTML = `<div style="padding:24px;color:#666;text-align:center">Drag components here</div>`;
-			// this.doc.body.appendChild(fallback);
-			// this.skeleton = fallback;
-			// this.skeletonTemplate = fallback.cloneNode(true);
 		}
 
 		// ✅ Ensure skeleton state is updated before history snapshot
@@ -101,32 +89,22 @@ class DropManager {
 				display: 'none',
 				pointerEvents: 'none',
 				zIndex: '9999',
-				// visible styling (adjust if you like)
 				background: 'limegreen',
 				transition: 'opacity 120ms linear',
 			});
 			this.doc.body.appendChild(this.dropLine);
 		}
 
-		// global dragend needs to be listened on both parent and iframe docs
 		document.removeEventListener('dragend', this._onGlobalDragEnd);
 		document.addEventListener('dragend', this._onGlobalDragEnd);
 
-		// iframe document dragend as well so dragging inside iframe ends cleanly
 		try {
 			this.doc.removeEventListener('dragend', this._onGlobalDragEnd);
 			this.doc.addEventListener('dragend', this._onGlobalDragEnd);
-		} catch (err) {
-			// ignore (edge cases)
-		}
+		} catch (err) {}
 
-		// initialize dropzone behavior on the iframe body
 		this.initDropZone(this.doc.body);
-
-		// rebind draggables/droppables already inside iframe
 		this.rebind();
-
-		// ensure skeleton is correct on init (again, after rebind)
 		this.updateSkeleton();
 
 		return true;
@@ -139,20 +117,12 @@ class DropManager {
 	}
 
 	safeParseJSON(raw) {
-		try {
-			return JSON.parse(raw || '{}');
-		} catch (err) {
-			return {};
-		}
+		try { return JSON.parse(raw || '{}'); } catch (err) { return {}; }
 	}
 
-	/**
-	 * Ensures skeleton is shown if canvas is empty, hidden/removed otherwise.
-	 */
 	updateSkeleton() {
 		if (!this.doc) return;
 
-		// Ensure we always have a skeletonTemplate cached
 		if (!this.skeletonTemplate) {
 			const liveSkeleton = this.doc.getElementById(this.skeletonId);
 			if (liveSkeleton) {
@@ -160,7 +130,6 @@ class DropManager {
 			}
 		}
 
-		// Only count "real" children — ignore skeleton, drop-line, and <script>/<style>
 		const hasRealChildren = Array.from(this.doc.body.children).some(c => {
 			if (c.id === this.skeletonId) return false;
 			if (c.id === 'drop-line') return false;
@@ -169,17 +138,14 @@ class DropManager {
 		});
 
 		if (hasRealChildren) {
-			// remove live skeleton if it exists
 			const liveSkeleton = this.doc.getElementById(this.skeletonId);
 			if (liveSkeleton) {
 				liveSkeleton.remove();
 				this.skeleton = null;
 			}
 		} else {
-			// restore skeleton if missing
 			if (!this.doc.getElementById(this.skeletonId) && this.skeletonTemplate) {
 				this.skeleton = this.skeletonTemplate.cloneNode(true);
-				// ensure it appears before drop-line so overlay works
 				const dropLine = this.doc.getElementById('drop-line');
 				if (dropLine) {
 					this.doc.body.insertBefore(this.skeleton, dropLine);
@@ -193,13 +159,8 @@ class DropManager {
 	rebind() {
 		if (!this.doc) return;
 
-		// init droppable zones already present inside iframe
 		Array.from(this.doc.querySelectorAll('.droppable')).forEach(zone => this.initDropZone(zone));
-
-		// make draggable any elements inside iframe that are marked draggable
 		Array.from(this.doc.querySelectorAll('[draggable="true"]')).forEach(el => this.makeDraggable(el));
-
-		// check skeleton state
 		this.updateSkeleton();
 	}
 
@@ -207,8 +168,7 @@ class DropManager {
 		if (!el || el.__draggableInit) return;
 		el.__draggableInit = true;
 
-		// ensure attribute exists
-		try { el.setAttribute('draggable', 'true'); } catch (err) { /*ignore*/ }
+		try { el.setAttribute('draggable', 'true'); } catch (err) {}
 
 		const onDragStart = e => {
 			this.toggleCompiledSpacing(true);
@@ -217,13 +177,11 @@ class DropManager {
 			const bufferData = this.safeParseJSON(el.getAttribute && el.getAttribute('data-buffer'));
 			const isToolbarItem = el.classList && el.classList.contains(this.blockClassName);
 			if (isToolbarItem) {
-				// toolbar items live in parent; carry their buffer data through dataTransfer
 				e.dataTransfer.setData('type', bufferData.type || '');
 				e.dataTransfer.setData('context', bufferData.context || '');
 				e.dataTransfer.setData('label', bufferData.label || bufferData.type || el.innerText || '');
 				this.draggedElement = null;
 			} else {
-				// dragging an existing element (either in iframe or parent)
 				this.draggedElement = el;
 			}
 		};
@@ -238,7 +196,6 @@ class DropManager {
 		zone.classList.add('droppable');
 		if (this.withBorders) zone.classList.add('with-border');
 
-		// dragover
 		zone.addEventListener('dragover', e => {
 			if (!this.doc) return;
 			this.toggleCompiledSpacing(true);
@@ -255,18 +212,13 @@ class DropManager {
 				return;
 			}
 
-			let closestX = null;
-			let closestY = null;
-			let minXDist = Infinity;
-			let minYDist = Infinity;
-
-			const cursorX = e.clientX;
-			const cursorY = e.clientY;
+			let closestX = null, closestY = null;
+			let minXDist = Infinity, minYDist = Infinity;
+			const cursorX = e.clientX, cursorY = e.clientY;
 
 			for (let child of children) {
 				const rect = child.getBoundingClientRect();
 
-				// horizontal (x)
 				const yWithinBounds = cursorY >= rect.top && cursorY <= rect.bottom;
 				if (yWithinBounds) {
 					const xDist = Math.abs(cursorX - (rect.left + rect.width / 2));
@@ -276,7 +228,6 @@ class DropManager {
 					}
 				}
 
-				// vertical (y)
 				const xWithinBounds = cursorX >= rect.left && cursorX <= rect.right;
 				if (xWithinBounds) {
 					const yDist = Math.abs(cursorY - (rect.top + rect.height / 2));
@@ -313,7 +264,6 @@ class DropManager {
 			this.toggleHighlight(zone, true);
 		});
 
-		// dragleave
 		zone.addEventListener('dragleave', () => {
 			this.toggleCompiledSpacing(false);
 			this.toggleHighlight(zone, false);
@@ -321,7 +271,6 @@ class DropManager {
 			zone.classList.remove('drop-target-highlight');
 		});
 
-		// drop
 		zone.addEventListener('drop', e => {
 			if (!this.doc) return;
 			e.preventDefault();
@@ -349,11 +298,7 @@ class DropManager {
 
 				newElement = this.doc.createElement(type);
 				newElement.setAttribute('draggable', 'true');
-				newElement.setAttribute('data-buffer', JSON.stringify({
-					label,
-					type,
-					context
-				}));
+				newElement.setAttribute('data-buffer', JSON.stringify({ label, type, context }));
 
 				newElement.innerText = label;
 				this.makeDraggable(newElement);
@@ -381,7 +326,6 @@ class DropManager {
 
 			this.insertSorted(zone, newElement, this.lastDropTarget, this.lastDropPosition);
 
-			// Update skeleton and save
 			this.updateSkeleton();
 			this.historyManager?.saveState();
 
@@ -389,7 +333,6 @@ class DropManager {
 			this.lastDropTarget = null;
 			this.lastDropPosition = null;
 
-			// Fire the iframe listener
 			if (this.callback) {
 				this.callback(this.getStructure());
 			}
@@ -423,27 +366,19 @@ class DropManager {
 		}
 	}
 
-	/**
-	 * Show dropLine. This function is robust: it first attempts boundingRect - bodyRect
-	 * calculation; if that yields nonsense it falls back to accumulating offsets.
-	 */
 	showDropLine(targetEl, position = 'below') {
 		if (!this.dropLine || !this.doc || !targetEl) return;
 
-		// try boundingRect approach (most reliable)
 		const box = targetEl.getBoundingClientRect();
 		const bodyRect = this.doc.body.getBoundingClientRect();
 
-		// positions relative to iframe document
 		let left = box.left - bodyRect.left;
 		let top = box.top - bodyRect.top;
 		const width = box.width;
 		const height = box.height;
 
-		// fallback: compute offsets relative to body if the values look wrong
 		const invalid = !isFinite(left) || !isFinite(top) || Math.abs(left) > (this.doc.documentElement.clientWidth * 4);
 		if (invalid) {
-			// accumulate offsets (works even if boundingRect fails for cross-window weirdness)
 			let x = 0, y = 0;
 			let el = targetEl;
 			while (el && el !== this.doc.body && el !== this.doc.documentElement) {
@@ -463,16 +398,13 @@ class DropManager {
 			this.dropLine.style.height = '2px';
 			this.dropLine.style.left = `${Math.round(left)}px`;
 			this.dropLine.style.top = `${Math.round(position === 'above' ? top : (top + height))}px`;
-			// clear vertical styles
 			this.dropLine.style.right = '';
 			this.dropLine.style.bottom = '';
 		} else {
-			// vertical line (left or right)
 			this.dropLine.style.height = (height) + 'px';
 			this.dropLine.style.width = '2px';
 			this.dropLine.style.top = `${Math.round(top)}px`;
 			this.dropLine.style.left = `${Math.round(position === 'left' ? left : (left + width))}px`;
-			// clear horizontal styles
 			this.dropLine.style.right = '';
 			this.dropLine.style.bottom = '';
 		}
@@ -517,16 +449,12 @@ class DropManager {
 	getStructure() {
 		if (!this.doc || !this.doc.body) return [];
 		const traverse = node => {
-
-			// Guard
 			if (!node || !node.children) return [];
-
 			const compiledChildren = Array.from(node.children).filter(child => {
-				if (child.id === this.skeletonId) return false; // skip skeleton
-				if (child.id === 'drop-line') return false;    // skip drop-line
+				if (child.id === this.skeletonId) return false;
+				if (child.id === 'drop-line') return false;
 				return child.classList.contains('droppable');
 			});
-
 			return compiledChildren.map(child => {
 				if (!child.dataset.structureId) {
 					child.dataset.structureId = `node-${++this.structureIdCounter}`;
@@ -549,11 +477,6 @@ class DropManager {
 	}
 }
 
-/**
- * init(rootId)
- * rootId should be the id string of the parent container that also contains
- * the iframe with id `${rootId}-iframe`.
- */
 export default function init(rootId, blockClassName) {
 	const manager = new DropManager(rootId, blockClassName);
 	return {
