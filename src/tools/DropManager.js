@@ -352,7 +352,7 @@ class DropManager {
 		}
 		const children = Array.from(container.children).filter(c => c !== newEl && c.id !== 'drop-line');
 
-		if (newEl.parentElement && newEl.parentElement !== container) {
+		if (newEl.parentElement !== container) {
 			newEl.remove();
 		}
 
