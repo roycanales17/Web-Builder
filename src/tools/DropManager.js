@@ -332,16 +332,9 @@ class DropManager {
 
 			this.insertSorted(zone, newElement, this.lastDropTarget, this.lastDropPosition);
 
-			this.updateSkeleton();
-			this.historyManager?.saveState();
-
 			this.draggedElement = null;
 			this.lastDropTarget = null;
 			this.lastDropPosition = null;
-
-			if (this.callback) {
-				this.callback(this.getStructure());
-			}
 		});
 	}
 
@@ -358,9 +351,11 @@ class DropManager {
 			return;
 		}
 		const children = Array.from(container.children).filter(c => c !== newEl && c.id !== 'drop-line');
-		if (newEl.parentElement !== container) {
+
+		if (newEl.parentElement && newEl.parentElement !== container) {
 			newEl.remove();
 		}
+
 		if (dropTarget && children.includes(dropTarget)) {
 			if (dropPosition === 'above' || dropPosition === 'left') {
 				container.insertBefore(newEl, dropTarget);
@@ -369,6 +364,12 @@ class DropManager {
 			}
 		} else {
 			container.appendChild(newEl);
+		}
+
+		this.updateSkeleton();
+		this.historyManager?.saveState();
+		if (this.callback) {
+			this.callback(this.getStructure());
 		}
 	}
 
