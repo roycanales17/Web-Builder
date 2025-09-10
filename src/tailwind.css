@@ -123,6 +123,7 @@ body {
     display: none;
 }
 
+.structure-trash,
 .structure-eye {
     font-size: 0.875rem;
     color: #9ca3af;
@@ -132,6 +133,7 @@ body {
     min-width: 10px;
 }
 
+.structure-trash:hover,
 .structure-eye:hover {
     color: #4b5563;
 }
@@ -186,4 +188,9 @@ body {
 
 .structure-block.drop-inside {
     border: 2px dashed #28a745;
+}
+
+.structure-block.selected {
+    background: #e0f3ff;
+    outline: 1px solid #007bff;
 }

@@ -6,6 +6,7 @@ export default class StructureViewer {
 		this.blockClassName = "structure-block";
 		this.bufferedStructureItem = {};
 		this.expandedNodes = new Set();
+		this.selectedBlock = null;
 
 		// floating drop-line element
 		this.dropLine = this.createDropLine();
@@ -114,6 +115,23 @@ export default class StructureViewer {
 			actions.appendChild(eyeSpan);
 		}
 
+		// Trash icon
+		const trashSpan = document.createElement("span");
+		trashSpan.innerHTML = `<i class="fas fa-trash structure-trash"></i>`;
+		trashSpan.addEventListener("click", (ev) => {
+			ev.stopPropagation();
+			const id = block.dataset.elementId;
+			const compiledEl = Array.from(this.dropManager.doc.body.querySelectorAll(".droppable"))
+				.find(el => el.dataset.structureId === id);
+
+			if (compiledEl) {
+				compiledEl.remove();
+				this.updateTree(this.dropManager.getStructure());
+			}
+		});
+		actions.appendChild(trashSpan);
+
+		// Drag icon
 		const dragIconSpan = document.createElement("span");
 		dragIconSpan.innerHTML = `<i class="fas fa-up-down-left-right structure-drag"></i>`;
 		actions.appendChild(dragIconSpan);
@@ -121,6 +139,20 @@ export default class StructureViewer {
 		parentRow.appendChild(label);
 		parentRow.appendChild(actions);
 		block.appendChild(parentRow);
+
+		parentRow.addEventListener("click", (e) => {
+			e.stopPropagation();
+
+			// clear old selection
+			if (this.selectedBlock) {
+				this.selectedBlock.classList.remove("selected");
+			}
+
+			// set new
+			this.selectedBlock = block;
+			block.classList.add("selected");
+			this.container.focus(); // allow keyboard nav
+		});
 
 		if (hasChildren) {
 			item.children.forEach(child => {
@@ -346,6 +378,32 @@ export default class StructureViewer {
 			this._clearHoverState();
 			if (this.dropManager?.draggedElement) {
 				this.dropManager.draggedElement = null;
+			}
+		});
+
+		// --- Keyboard navigation for moving selected block ---
+		this.container.tabIndex = 0; // make container focusable
+		this.container.addEventListener("keydown", (e) => {
+			if (!this.selectedBlock) return;
+
+			const id = this.selectedBlock.dataset.elementId;
+			const compiledEl = Array.from(this.dropManager.doc.body.querySelectorAll(".droppable"))
+				.find(el => el.dataset.structureId === id);
+
+			if (!compiledEl) return;
+
+			if (e.key === "ArrowUp") {
+				const prev = this.selectedBlock.previousElementSibling;
+				if (prev) {
+					prev.before(this.selectedBlock);
+					compiledEl.parentElement.insertBefore(compiledEl, compiledEl.previousElementSibling);
+				}
+			} else if (e.key === "ArrowDown") {
+				const next = this.selectedBlock.nextElementSibling;
+				if (next) {
+					next.after(this.selectedBlock);
+					compiledEl.parentElement.insertBefore(compiledEl, compiledEl.nextElementSibling.nextSibling);
+				}
 			}
 		});
 	}
