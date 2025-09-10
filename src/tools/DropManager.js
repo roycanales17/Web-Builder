@@ -36,10 +36,16 @@ class DropManager {
 		document.addEventListener('keydown', e => {
 			if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
 				e.preventDefault();
+				const after = () => {
+					this.rebind();
+					if (this.callback) {
+						this.callback(this.getStructure());
+					}
+				};
 				if (e.shiftKey) {
-					this.historyManager?.redo(() => this.rebind());
+					this.historyManager?.redo(after);
 				} else {
-					this.historyManager?.undo(() => this.rebind());
+					this.historyManager?.undo(after);
 				}
 			}
 		});
