@@ -31,8 +31,8 @@ export default class StructureViewer {
 		// Listen for clicks outside to clear selection
 		document.addEventListener("click", (e) => {
 			if (
-				this.selectedBlock && // only if something is selected
-				!this.container.contains(e.target) // click is outside the container
+				this.selectedBlock &&
+				!this.container.contains(e.target)
 			) {
 				this.selectedBlock.classList.remove("selected");
 				this.selectedBlock = null;
@@ -118,11 +118,11 @@ export default class StructureViewer {
 				if (isHidden) {
 					childrenWrapper.classList.remove("hidden");
 					eyeSpan.innerHTML = `<i class="fas fa-eye structure-eye"></i>`;
-					this.expandedNodes.add(block.dataset.elementId);   // ✅ remember expanded
+					this.expandedNodes.add(block.dataset.elementId);
 				} else {
 					childrenWrapper.classList.add("hidden");
 					eyeSpan.innerHTML = `<i class="fas fa-eye-slash structure-eye"></i>`;
-					this.expandedNodes.delete(block.dataset.elementId); // ✅ forget collapsed
+					this.expandedNodes.delete(block.dataset.elementId);
 				}
 			});
 
@@ -254,9 +254,9 @@ export default class StructureViewer {
 			}
 
 			if (pos === "above" || pos === "below") {
-				this.dropManager.insertSorted(compiledTarget.parentElement, dragged, compiledTarget, pos);
+				this.dropManager.insertSorted(compiledTarget?.parentElement, dragged, compiledTarget, pos);
 			} else if (pos === "inside") {
-				compiledTarget.appendChild(dragged);
+				compiledTarget?.appendChild(dragged);
 			} else if (pos === "empty") {
 				this.dropManager.root.appendChild(dragged);
 			} else if (pos === "above-first") {
@@ -371,6 +371,7 @@ export default class StructureViewer {
 			setTimeout(() => ghost.remove(), 0);
 
 			item.classList.add("dragging");
+			item.style.opacity = "0.5";
 
 			const id = item.dataset.elementId;
 			const compiledEl = this.findCompiledEl(id);
@@ -385,7 +386,11 @@ export default class StructureViewer {
 
 		this.container.addEventListener("dragend", () => {
 			this.container.querySelectorAll("." + this.blockClassName + ".dragging")
-				.forEach(el => el.classList.remove("dragging"));
+				.forEach(el => {
+					el.classList.remove("dragging");
+					el.style.opacity = "";
+				});
+
 			this._clearHoverState();
 			if (this.dropManager?.draggedElement) {
 				this.dropManager.draggedElement = null;
