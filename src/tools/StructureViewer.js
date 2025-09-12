@@ -134,13 +134,14 @@ export default class StructureViewer {
 		trashSpan.innerHTML = `<i class="fas fa-trash structure-trash"></i>`;
 		trashSpan.addEventListener("click", (ev) => {
 			ev.stopPropagation();
-			const id = block.dataset.elementId;
-			const compiledEl = Array.from(this.dropManager.doc.body.querySelectorAll(".droppable"))
-				.find(el => el.dataset.structureId === id);
+			if (confirm("Are you sure you want to delete it?")) {
+				const id = block.dataset.elementId;
+				const compiledEl = this.findCompiledEl(id);
 
-			if (compiledEl) {
-				compiledEl.remove();
-				this.updateTree(this.dropManager.getStructure());
+				if (compiledEl) {
+					compiledEl.remove();
+					this.updateTree(this.dropManager.getStructure());
+				}
 			}
 		});
 		actions.appendChild(trashSpan);
@@ -249,8 +250,7 @@ export default class StructureViewer {
 			let compiledTarget = null;
 			if (target) {
 				const id = target.dataset.elementId;
-				compiledTarget = Array.from(this.dropManager.doc.body.querySelectorAll(".droppable"))
-					.find(el => el.dataset.structureId === id);
+				compiledTarget = this.findCompiledEl(id);
 			}
 
 			if (pos === "above" || pos === "below") {
@@ -263,8 +263,7 @@ export default class StructureViewer {
 				const firstBlock = this.container.querySelector("." + this.blockClassName);
 				if (firstBlock) {
 					const id = firstBlock.dataset.elementId;
-					const compiledFirst = Array.from(this.dropManager.doc.body.querySelectorAll(".droppable"))
-						.find(el => el.dataset.structureId === id);
+					const compiledFirst = this.findCompiledEl(id);
 					this.dropManager.insertSorted(compiledFirst.parentElement, dragged, compiledFirst, "above");
 				}
 			} else if (pos === "below-last") {
@@ -272,8 +271,7 @@ export default class StructureViewer {
 				if (lastBlock.length) {
 					const last = lastBlock[lastBlock.length - 1];
 					const id = last.dataset.elementId;
-					const compiledLast = Array.from(this.dropManager.doc.body.querySelectorAll(".droppable"))
-						.find(el => el.dataset.structureId === id);
+					const compiledLast = this.findCompiledEl(id);
 					this.dropManager.insertSorted(compiledLast.parentElement, dragged, compiledLast, "below");
 				}
 			}
@@ -375,8 +373,7 @@ export default class StructureViewer {
 			item.classList.add("dragging");
 
 			const id = item.dataset.elementId;
-			const compiledEl = Array.from(this.dropManager.doc.body.querySelectorAll(".droppable"))
-				.find(el => el.dataset.structureId === id);
+			const compiledEl = this.findCompiledEl(id);
 
 			if (compiledEl) {
 				this.dropManager.draggedElement = compiledEl;
@@ -401,8 +398,7 @@ export default class StructureViewer {
 			if (!this.selectedBlock) return;
 
 			const id = this.selectedBlock.dataset.elementId;
-			const compiledEl = Array.from(this.dropManager.doc.body.querySelectorAll(".droppable"))
-				.find(el => el.dataset.structureId === id);
+			const compiledEl = this.findCompiledEl(id);
 
 			if (!compiledEl) return;
 
@@ -420,6 +416,11 @@ export default class StructureViewer {
 				}
 			}
 		});
+	}
+
+	findCompiledEl(id) {
+		return Array.from(this.dropManager.doc.body.querySelectorAll(".droppable"))
+			.find(el => el.dataset.structureId === id)
 	}
 
 	// ---------------------- DROP LINE ----------------------
