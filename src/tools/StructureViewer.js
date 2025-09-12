@@ -1,3 +1,5 @@
+import HistoryManager from './HistoryManager.js';
+
 export default class StructureViewer {
 	constructor(structureRootId, dropManager) {
 		this.container = document.getElementById(structureRootId);
