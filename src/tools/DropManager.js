@@ -42,11 +42,6 @@ class DropManager {
 						this.callback(this.getStructure());
 					}
 				};
-				if (e.shiftKey) {
-					this.historyManager?.redo(after);
-				} else {
-					this.historyManager?.undo(after);
-				}
 			}
 		});
 
@@ -81,9 +76,6 @@ class DropManager {
 
 		// ✅ Ensure skeleton state is updated before history snapshot
 		this.updateSkeleton();
-
-		// history manager should track iframe body
-		this.historyManager = new HistoryManager(this.doc.body);
 
 		// create dropLine inside iframe if missing
 		this.dropLine = this.doc.getElementById('drop-line');
@@ -367,7 +359,6 @@ class DropManager {
 		}
 
 		this.updateSkeleton();
-		this.historyManager?.saveState();
 		if (this.callback) {
 			this.callback(this.getStructure());
 		}
