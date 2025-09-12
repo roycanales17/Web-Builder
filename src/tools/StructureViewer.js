@@ -27,6 +27,18 @@ export default class StructureViewer {
 		if (!this.skeleton) {
 			console.warn(`StructureViewer: skeleton #${structureRootId}-skeleton not found`);
 		}
+
+		// Listen for clicks outside to clear selection
+		document.addEventListener("click", (e) => {
+			if (
+				this.selectedBlock && // only if something is selected
+				!this.container.contains(e.target) // click is outside the container
+			) {
+				this.selectedBlock.classList.remove("selected");
+				this.selectedBlock = null;
+			}
+		});
+
 	}
 
 	updateTree(structure) {
