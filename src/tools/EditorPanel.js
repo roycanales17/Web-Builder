@@ -171,6 +171,16 @@ export default class EditorPanel {
 				this._field('Browser title', this._input(page.title, {
 					onchange: e => this.project.updatePage(page.id, { title: e.target.value }),
 				})),
+				h('label', { class: 'flex items-start gap-2 mt-1 text-xs text-neutral-600' },
+					h('input', {
+						type: 'checkbox',
+						class: 'mt-0.5',
+						checked: !page.hideInNav,
+						onchange: e => this.project.updatePage(page.id, { hideInNav: !e.target.checked }),
+					}),
+					h('span', {}, 'Show in menus', h('br'),
+						h('span', { class: 'text-[11px] text-neutral-400' }, 'Turn off for pages like 404 or privacy that menus should not link to.')),
+				),
 			),
 			this._section('Site CSS (all pages)',
 				h('p', { class: 'mb-2 text-[11px] text-neutral-500' }, 'Custom CSS added to the generated style.css of every page.'),
@@ -237,7 +247,32 @@ export default class EditorPanel {
 			fields.push(h('p', { class: 'mb-3 text-[11px] text-neutral-500' }, 'Double-click the text on the canvas to edit it.'));
 		}
 
+		// A menu that follows the page list: the element itself, or the menu a link belongs to.
+		const menu = el.closest('[data-nav]') || el.closest('nav');
+		if (menu && menu !== el && menu.hasAttribute('data-nav')) {
+			fields.push(h('p', { class: 'mb-3 px-2 py-1.5 rounded-md bg-amber-50 text-[11px] text-amber-700' },
+				'This link is generated from your pages. Turn off "Links follow your pages" below to edit it by hand.'));
+		}
+
 		(ATTRIBUTE_FIELDS[tag] || []).forEach(def => fields.push(this._attributeField(el, def)));
+
+		if (menu) {
+			fields.push(h('label', { class: 'flex items-start gap-2 mb-3 text-xs text-neutral-600' },
+				h('input', {
+					type: 'checkbox',
+					class: 'mt-0.5',
+					checked: menu.hasAttribute('data-nav'),
+					onchange: e => {
+						if (e.target.checked) menu.setAttribute('data-nav', '');
+						else menu.removeAttribute('data-nav');
+						this._commit(); // re-enabling syncs the links right away
+						this.render(el);
+					},
+				}),
+				h('span', {}, 'Links follow your pages', h('br'),
+					h('span', { class: 'text-[11px] text-neutral-400' }, 'Adds, renames and removes links automatically when pages change.')),
+			));
+		}
 
 		if (tag === 'select') {
 			fields.push(this._field('Options (one per line)', h('textarea', {

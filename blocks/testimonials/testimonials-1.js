@@ -2,7 +2,7 @@ export default {
 	id: 'testimonials-1',
 	label: 'Testimonials — Quotes',
 	description: 'Three customer quotes with names',
-	category: 'Testimonials',
+	category: 'Social Proof',
 	content: `
 		<section class="g--testimonials-1">
 			<h2>Loved by teams everywhere</h2>

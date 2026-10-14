@@ -1,16 +1,13 @@
 export default {
 	id: 'navbar-1',
 	label: 'Navbar — Classic',
-	description: 'Brand on the left, links on the right',
+	description: 'Brand on the left, links to your pages on the right',
 	category: 'Navigation',
 	content: `
 		<header class="g--navbar-1">
 			<a class="g--navbar-1-brand" href="index.html">BrandLogo</a>
-			<nav class="g--navbar-1-links">
-				<a href="index.html">Home</a>
-				<a href="#about">About</a>
-				<a href="#services">Services</a>
-				<a href="#contact">Contact</a>
+			<nav class="g--navbar-1-links" data-nav>
+				{{nav}}
 			</nav>
 		</header>
 		<style>
@@ -41,6 +38,11 @@ export default {
 				color: inherit;
 				text-decoration: none;
 				opacity: .9;
+			}
+
+			.g--navbar-1-links a[aria-current="page"] {
+				opacity: 1;
+				font-weight: 700;
 			}
 
 			.g--navbar-1-links a:hover {

@@ -1,17 +1,15 @@
 export default {
 	id: 'navbar-2',
 	label: 'Navbar — Dark with CTA',
-	description: 'Dark bar with links and a call-to-action button',
+	description: 'Dark bar with links to your pages and a call-to-action',
 	category: 'Navigation',
 	content: `
 		<header class="g--navbar-2">
 			<a class="g--navbar-2-brand" href="index.html"><span>◆</span> Nimbus</a>
-			<nav class="g--navbar-2-links">
-				<a href="#features">Features</a>
-				<a href="#pricing">Pricing</a>
-				<a href="#faq">FAQ</a>
+			<nav class="g--navbar-2-links" data-nav>
+				{{nav}}
 			</nav>
-			<a class="g--navbar-2-cta" href="#contact">Get started</a>
+			<a class="g--navbar-2-cta" href="contact.html">Get started</a>
 		</header>
 		<style>
 			.g--navbar-2 {
@@ -36,7 +34,8 @@ export default {
 
 			.g--navbar-2-links {
 				display: flex;
-				gap: 24px;
+				flex-wrap: wrap;
+				gap: 8px 24px;
 				margin-right: auto;
 			}
 
@@ -46,8 +45,13 @@ export default {
 				font-size: 15px;
 			}
 
-			.g--navbar-2-links a:hover {
+			.g--navbar-2-links a:hover,
+			.g--navbar-2-links a[aria-current="page"] {
 				color: #fff;
+			}
+
+			.g--navbar-2-links a[aria-current="page"] {
+				font-weight: 600;
 			}
 
 			.g--navbar-2-cta {

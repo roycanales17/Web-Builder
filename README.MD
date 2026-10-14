@@ -25,12 +25,14 @@ Other scripts:
 ## ✨ Features
 
 - **Blocks**: layouts (Section, Container, Row, Column, Grid), content, media, form controls and CSS-only interactive blocks (Tabs, Accordion, Carousel). Drag them onto the canvas or click to add after the selection.
-- **Templates** (Components tab): navbars, heroes, features, pricing, testimonials, team, gallery, FAQ, call to action, contact form, footers and column layouts. Each one has a live thumbnail, and you can search or filter by category.
+- **Page templates**: start a new page from Landing, About, Services, Pricing, Portfolio, Blog, Blog post, Contact, Personal/Resume or 404. You can also append one to the page you're on (Components → Pages).
+- **Section templates** (Components → Sections): 35 sections. They include navbars, heroes, page headers, features, how-it-works steps, services, stats, pricing, testimonials, logo strip, team, timeline, portfolio, gallery, blog cards, article, FAQ, call to action, newsletter, contact form and info, 404, footers and column layouts. Each one has a live thumbnail, and you can search or filter by category.
 - **Nesting**: containers and template columns accept blocks. Text elements never swallow drops.
 - **Editor panel**: edit text, links (with a picker for your pages), images (URL or upload), form attributes, ID and classes, and styles.
 - **Responsive styles**: choose Desktop, Tablet (≤ 900px) or Mobile (≤ 575px) in the top bar, then edit. Tablet and mobile edits become media-query overrides.
 - **Inline editing**: double-click text on the canvas. Click once to select a block, then click again to select an element inside it.
-- **Pages**: add, duplicate, rename or delete pages. The first page is always `index.html`.
+- **Pages**: add (blank or from a template), duplicate, rename or delete pages. The first page is always `index.html`.
+- **Menus that follow your pages**: navbar links are generated from your page list and stay in sync when you add, rename or delete pages. The current page is marked with `aria-current="page"`. In page settings, "Show in menus" keeps a page (such as 404) out of menus. To hand-edit a menu, turn off "Links follow your pages" for it in the Editor.
 - **Undo/redo** (Ctrl/⌘+Z, Ctrl/⌘+Shift+Z) for each page. **Delete** removes the selection and **Esc** deselects it.
 - **Autosave** to your browser's localStorage. Use Import/Export (Components tab) to move a project as `.json`. You can also import an `.html` page.
 - **Preview** shows the current page as it will be published, and links between your pages work in it.
@@ -63,8 +65,26 @@ export default {
 ```
 
 - `{{assets}}` expands to `blocks/resources/`. Images referenced this way are bundled into the export.
+- `{{page}}` becomes the name of the page the section is added to (useful for page titles).
+- `{{nav}}` becomes links to every page. Put it inside an element with `data-nav` so the menu stays in sync:
+  `<nav class="g--my-navbar-links" data-nav>{{nav}}</nav>`.
 - Elements with `data-dropzone` accept other blocks.
 - Thumbnails are rendered automatically from the template itself.
+
+## 📄 Adding page templates
+
+Page templates live in `blocks/pages.js`. Each is a list of section ids:
+
+```js
+{
+	id: 'about',
+	label: 'About',
+	description: 'Story, timeline, team and numbers',
+	name: 'About',                    // suggested page name
+	sections: ['navbar-2', 'page-header-1', 'features-2', 'timeline-1', 'team-1', 'cta-1', 'footer-1'],
+	hideInNav: false,                 // true keeps the page out of generated menus
+}
+```
 
 ## Project structure
 
@@ -77,8 +97,10 @@ src/tools/ProjectManager.js  pages, undo/redo history, autosave
 src/tools/Exporter.js        HTML + generated CSS + ZIP export
 src/tools/EditorPanel.js     Editor tab
 src/tools/StructureViewer.js Structure tab
-src/tools/ComponentsPanel.js Components tab (template library)
-blocks/                      section templates and their images
+src/tools/ComponentsPanel.js Components tab (section and page templates)
+src/tools/Templates.js       template placeholders, menu syncing, thumbnails
+blocks/components.js         section template registry
+blocks/pages.js              page templates
 ```
 
 ## Project status: in progress

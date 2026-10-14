@@ -14,6 +14,9 @@ export function slugify(text) {
 		.replace(/^-+|-+$/g, '') || 'page';
 }
 
+/** File name a page is exported as; the first page is always index.html. */
+export const pageFileName = (page, index) => (index === 0 ? 'index.html' : `${page.slug}.html`);
+
 const newPageId = () => `page-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
 
 /**
@@ -106,14 +109,15 @@ export default class ProjectManager {
 			title: data.title || name,
 			html: data.html || '',
 			styles: data.styles || {},
+			hideInNav: Boolean(data.hideInNav),
 		};
 	}
 
-	addPage(name) {
+	addPage(name, options = {}) {
 		name = String(name || '').trim();
 		if (!name) return null;
 		this._syncCurrent();
-		const page = this._createPage(name);
+		const page = this._createPage(name, options);
 		this.pages.push(page);
 		this._openPage(page.id);
 		return page;
@@ -135,6 +139,7 @@ export default class ProjectManager {
 		if (changes.name !== undefined && String(changes.name).trim()) page.name = String(changes.name).trim();
 		if (changes.slug !== undefined) page.slug = this._uniqueSlug(changes.slug || page.name, id);
 		if (changes.title !== undefined) page.title = String(changes.title);
+		if (changes.hideInNav !== undefined) page.hideInNav = Boolean(changes.hideInNav);
 		this.save();
 		this._emit();
 	}
@@ -259,7 +264,7 @@ export default class ProjectManager {
 			version: PROJECT_VERSION,
 			currentId: this.currentId,
 			siteCSS: this.styles.siteCSS,
-			pages: this.pages.map(({ id, name, slug, title, html, styles }) => ({ id, name, slug, title, html, styles })),
+			pages: this.pages.map(({ id, name, slug, title, html, styles, hideInNav }) => ({ id, name, slug, title, html, styles, hideInNav })),
 		};
 	}
 
@@ -311,6 +316,7 @@ export default class ProjectManager {
 					title: String(p.title ?? name),
 					html: String(p.html || ''),
 					styles: p.styles && typeof p.styles === 'object' ? p.styles : {},
+					hideInNav: Boolean(p.hideInNav),
 				};
 			});
 		if (!pages.length) return null;

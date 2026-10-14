@@ -8,7 +8,9 @@ import ComponentsPanel from './tools/ComponentsPanel.js';
 import { buildPageCode, buildPreviewHTML, exportSiteZip, pageFileName } from './tools/Exporter.js';
 import { sanitize } from './tools/Serializer.js';
 import registerBasicBlocks from './blocks.js';
+import { projectContext, resolveTemplate, renderThumbnail, pageSections, syncNavs } from './tools/Templates.js';
 import templates from '../blocks/components.js';
+import pageTemplates from '../blocks/pages.js';
 
 const canvas_area = document.getElementById('drop-zone');
 const viewport_actions = document.querySelectorAll('[data-viewport]');
@@ -77,14 +79,23 @@ const blockManager = initBlocksManager('blocks-panel', drop);
 registerBasicBlocks(blockManager);
 blockManager.renderAll();
 
-new ComponentsPanel(
-	{ listId: 'components-list', searchId: 'components-search', filtersId: 'components-filters' },
-	templates,
-	drop
-);
-
 project.init().then(() => {
 	const editor = new EditorPanel('editor-panel', { drop, styles, project });
+	const newPageDialog = setupNewPageDialog();
+
+	new ComponentsPanel(
+		{
+			listId: 'components-list',
+			pageListId: 'components-pages',
+			searchId: 'components-search',
+			filtersId: 'components-filters',
+			modesId: 'components-modes',
+		},
+		{ templates, pageTemplates, drop, project, onNewPage: template => newPageDialog.open(template) }
+	);
+
+	// Menus marked data-nav follow the page list (add / rename / delete pages).
+	project.onChange(() => syncNavs(drop.doc.body, projectContext(project)));
 
 	// Selecting something on the canvas opens its properties (unless the
 	// structure tree is in use).
@@ -93,7 +104,7 @@ project.init().then(() => {
 	});
 
 	setupViewport(editor);
-	setupPages();
+	setupPages(newPageDialog);
 	setupHistoryButtons();
 	setupToolbar();
 	setupCodeViewer();
@@ -117,7 +128,7 @@ function setupViewport(editor) {
 
 // --------------------------------------------------------------------- pages
 
-function setupPages() {
+function setupPages(newPageDialog) {
 	const select = document.getElementById('page-select');
 	const status = document.getElementById('save-status');
 
@@ -136,10 +147,7 @@ function setupPages() {
 
 	select.addEventListener('change', () => project.openPage(select.value));
 
-	document.getElementById('btn-page-add').addEventListener('click', () => {
-		const name = prompt('Name of the new page', `Page ${project.pages.length + 1}`);
-		if (name && project.addPage(name)) toast(`Page "${name.trim()}" added`);
-	});
+	document.getElementById('btn-page-add').addEventListener('click', () => newPageDialog.open());
 
 	document.getElementById('btn-page-duplicate').addEventListener('click', () => {
 		const page = project.duplicatePage(project.currentId);
@@ -157,6 +165,108 @@ function setupPages() {
 	document.getElementById('btn-clear-page').addEventListener('click', () => {
 		if (confirm('Remove everything from this page? (You can undo this.)')) project.clearPage();
 	});
+}
+
+/** Create a page and fill it with a page template's sections (one undo step). */
+function createPageFromTemplate(name, pageTemplate) {
+	const page = project.addPage(name, { hideInNav: pageTemplate.hideInNav });
+	if (!page) return null;
+
+	const sections = pageSections(pageTemplate, templates);
+	if (sections.length) {
+		const context = projectContext(project);
+		drop.appendBlocks(sections.map(template => drop.createBlock(resolveTemplate(template, context))));
+		drop.doc.scrollingElement.scrollTop = 0;
+	}
+	return page;
+}
+
+function setupNewPageDialog() {
+	const modal = document.getElementById('page-modal');
+	const form = document.getElementById('page-form');
+	const nameInput = document.getElementById('page-name');
+	const hint = document.getElementById('page-file-hint');
+	const grid = document.getElementById('page-template-grid');
+	let selected = pageTemplates[0];
+	let nameTouched = false;
+
+	const suggestName = template => {
+		const taken = new Set(project.pages.map(p => p.name.toLowerCase()));
+		let name = template.name || template.label;
+		for (let n = 2; taken.has(name.toLowerCase()); n++) name = `${template.name || template.label} ${n}`;
+		return name;
+	};
+
+	const updateHint = () => {
+		hint.textContent = nameInput.value.trim() ? 'The file name is created from the page name. You can change it later in the Editor tab.' : '';
+	};
+
+	const options = pageTemplates.map(template => {
+		const sections = pageSections(template, templates);
+		const option = document.createElement('button');
+		option.type = 'button';
+		option.className = 'flex flex-col gap-2 p-2 text-left border-2 border-gray-200 rounded-lg bg-white hover:border-[#0072F4]/50 [&.selected]:border-[#0072F4] transition-colors';
+
+		const frame = document.createElement('div');
+		frame.className = 'relative w-full h-[140px] rounded-md overflow-hidden border border-gray-100 bg-gray-50 flex items-center justify-center';
+		if (!sections.length) frame.innerHTML = '<i class="fas fa-plus w-6 h-6 text-gray-300"></i>';
+
+		const label = document.createElement('span');
+		label.className = 'text-sm font-medium text-neutral-800';
+		label.textContent = template.label;
+		const description = document.createElement('span');
+		description.className = 'text-[11px] leading-4 text-neutral-500';
+		description.textContent = template.description || '';
+
+		option.append(frame, label, description);
+		option.addEventListener('click', () => select(template));
+		option.addEventListener('dblclick', () => form.requestSubmit());
+		grid.appendChild(option);
+		return { option, frame, template, sections };
+	});
+
+	const select = template => {
+		selected = template;
+		options.forEach(o => o.option.classList.toggle('selected', o.template === template));
+		if (!nameTouched) nameInput.value = suggestName(template);
+		updateHint();
+	};
+
+	const close = () => modal.classList.remove('open');
+
+	nameInput.addEventListener('input', () => { nameTouched = true; updateHint(); });
+	document.getElementById('btn-page-modal-close').addEventListener('click', close);
+	document.getElementById('btn-page-modal-cancel').addEventListener('click', close);
+	modal.addEventListener('click', e => { if (e.target === modal) close(); });
+	document.addEventListener('keydown', e => {
+		if (e.key === 'Escape' && modal.classList.contains('open')) close();
+	});
+
+	form.addEventListener('submit', e => {
+		e.preventDefault();
+		const name = nameInput.value.trim();
+		if (!name) return;
+		close();
+		if (createPageFromTemplate(name, selected)) {
+			toast(`Page "${name}" created${selected.sections.length ? ` from the ${selected.label} template` : ''}`);
+		}
+	});
+
+	return {
+		open(template = pageTemplates[0]) {
+			nameTouched = false;
+			modal.classList.add('open');
+			// Thumbnails need the dialog to be visible to measure their size.
+			options.forEach(({ frame, sections, template: pageTemplate }) => {
+				if (!sections.length) return;
+				const context = { ...projectContext(project), pageName: pageTemplate.name };
+				renderThumbnail(frame, sections.map(t => resolveTemplate(t, context).content).join('\n'), 140);
+			});
+			select(template);
+			nameInput.focus();
+			nameInput.select();
+		},
+	};
 }
 
 function setupHistoryButtons() {

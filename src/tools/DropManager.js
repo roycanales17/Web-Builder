@@ -273,6 +273,16 @@ class DropManager {
 		return true;
 	}
 
+	/** Append several blocks to the end of the page as one change (one undo step). */
+	appendBlocks(elements) {
+		if (!this.doc || !elements.length) return;
+		const tail = this._editorNodes()[0] || null;
+		elements.forEach(el => this.doc.body.insertBefore(el, tail));
+		this.commit();
+		this.select(null);
+		elements[0].scrollIntoView({ block: 'start' });
+	}
+
 	/**
 	 * Click-to-add: put a new block inside the selected container, after the
 	 * selected block, or at the end of the page.

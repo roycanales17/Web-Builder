@@ -11,7 +11,7 @@ const INDENT = '\t';
  * Attributes / classes that only exist to make the canvas editable.
  * They are removed from anything that leaves the editor (preview, code, publish).
  */
-export const EDITOR_ATTRIBUTES = ['data-buffer', 'data-structure-id', 'data-dropzone', 'draggable', 'contenteditable'];
+export const EDITOR_ATTRIBUTES = ['data-buffer', 'data-structure-id', 'data-dropzone', 'data-nav', 'draggable', 'contenteditable'];
 export const EDITOR_CLASSES = [
 	'droppable', 'drop-target-highlight', 'wb-selected', 'wb-debug', 'wb-debug-spacing', 'wb-dragging',
 ];

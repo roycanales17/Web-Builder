@@ -1,48 +1,78 @@
 import { BLOCK_MIME } from './DropManager.js';
-import { BASE_CSS } from './StyleManager.js';
+import { resolveTemplate, projectContext, renderThumbnail, lazyThumbnails, pageSections, SAMPLE_CONTEXT } from './Templates.js';
 
-/** Where template images live, as an absolute URL (so exports can bundle them). */
-const ASSETS_URL = new URL('blocks/resources/', document.baseURI).href;
+const CARD_CLASS = 'flex flex-col gap-2 border border-gray-200 rounded-md p-3 bg-white hover:border-[#0072F4] transition-colors';
+const FRAME_CLASS = 'w-full border border-gray-200 rounded-md overflow-hidden relative group bg-gray-50';
 
-/** Width the template is rendered at before being scaled down into its card. */
-const THUMBNAIL_RENDER_WIDTH = 1280;
+function button(text, title, onClick) {
+	const el = document.createElement('button');
+	el.type = 'button';
+	el.className = 'btn-2 btn-default';
+	el.textContent = text;
+	el.title = title;
+	el.addEventListener('click', onClick);
+	return el;
+}
 
-export function resolveTemplate(template) {
-	return {
-		kind: 'template',
-		id: template.id,
-		label: template.label,
-		content: template.content.replace(/\{\{assets\}\}/g, ASSETS_URL),
-	};
+function cardText(card, label, description) {
+	const title = document.createElement('label');
+	title.className = 'text-sm text-black leading-none';
+	title.textContent = label;
+
+	const meta = document.createElement('p');
+	meta.className = 'text-xs text-neutral-500';
+	meta.textContent = description;
+
+	card.append(title, meta);
 }
 
 /**
- * Template library: searchable, filterable cards with live thumbnails.
- * Templates are plain objects { id, label, category, description?, content },
- * see blocks/components.js.
+ * Template library with two views:
+ *  - Sections: searchable, filterable section templates (drag or add to the page)
+ *  - Pages:    whole-page templates (create a new page from one, or append it)
  */
 export default class ComponentsPanel {
-	constructor({ listId, searchId, filtersId }, templates, dropManager) {
-		this.list = document.getElementById(listId);
-		this.search = document.getElementById(searchId);
-		this.filters = document.getElementById(filtersId);
+	constructor(ids, { templates, pageTemplates, drop, project, onNewPage }) {
+		this.list = document.getElementById(ids.listId);
+		this.pageList = document.getElementById(ids.pageListId);
+		this.search = document.getElementById(ids.searchId);
+		this.filters = document.getElementById(ids.filtersId);
+		this.modes = document.getElementById(ids.modesId);
+
 		this.templates = templates;
-		this.dropManager = dropManager;
+		this.pageTemplates = pageTemplates;
+		this.drop = drop;
+		this.project = project;
+		this.onNewPage = onNewPage;
 		this.category = 'All';
+		this.mode = 'sections';
 		this.cards = [];
+		this.pageCards = [];
 
-		this.observer = 'IntersectionObserver' in window
-			? new IntersectionObserver(entries => entries.forEach(entry => {
-				if (entry.isIntersecting) {
-					this._loadThumbnail(entry.target);
-					this.observer.unobserve(entry.target);
-				}
-			}), { root: this.list.closest('.overflow-y-auto') })
-			: null;
+		this.thumbnails = lazyThumbnails(this.list.closest('.overflow-y-auto'), frame => frame.__renderThumbnail());
 
+		this._renderModes();
 		this._renderFilters();
-		this._renderCards();
+		this._renderSectionCards();
+		this._renderPageCards();
+		this._applyFilter();
 		this.search.addEventListener('input', () => this._applyFilter());
+	}
+
+	/** Resolve a section template against the project as it is right now. */
+	_spec(template) {
+		return resolveTemplate(template, projectContext(this.project));
+	}
+
+	_renderModes() {
+		this.modes.querySelectorAll('[data-mode]').forEach(btn => {
+			btn.addEventListener('click', () => {
+				this.mode = btn.dataset.mode;
+				this.modes.querySelectorAll('[data-mode]').forEach(b => b.classList.toggle('active', b === btn));
+				this.search.placeholder = this.mode === 'pages' ? 'Search page templates…' : 'Search sections…';
+				this._applyFilter();
+			});
+		});
 	}
 
 	_renderFilters() {
@@ -62,15 +92,13 @@ export default class ComponentsPanel {
 		}));
 	}
 
-	_renderCards() {
+	_renderSectionCards() {
 		this.cards = this.templates.map(template => {
-			const spec = resolveTemplate(template);
-
 			const card = document.createElement('div');
-			card.className = 'flex flex-col gap-2 border border-gray-200 rounded-md p-3 bg-white hover:border-[#0072F4] transition-colors';
+			card.className = CARD_CLASS;
 
 			const frame = document.createElement('div');
-			frame.className = 'w-full h-[150px] border border-gray-200 rounded-md overflow-hidden relative group bg-gray-50 cursor-grab';
+			frame.className = `${FRAME_CLASS} h-[150px] cursor-grab`;
 			frame.setAttribute('draggable', 'true');
 			frame.title = 'Drag to the canvas';
 			frame.dataset.templateId = template.id;
@@ -81,72 +109,92 @@ export default class ComponentsPanel {
 			`;
 			frame.addEventListener('dragstart', e => {
 				e.dataTransfer.effectAllowed = 'copy';
-				e.dataTransfer.setData(BLOCK_MIME, JSON.stringify(spec));
+				e.dataTransfer.setData(BLOCK_MIME, JSON.stringify(this._spec(template)));
 			});
+			frame.__renderThumbnail = () => renderThumbnail(frame, resolveTemplate(template, SAMPLE_CONTEXT).content);
 
-			const title = document.createElement('label');
-			title.className = 'text-sm text-black leading-none';
-			title.textContent = template.label;
-
-			const meta = document.createElement('p');
-			meta.className = 'text-xs text-neutral-500';
-			meta.textContent = template.description || template.category;
+			card.appendChild(frame);
+			cardText(card, template.label, template.description || template.category);
 
 			const actions = document.createElement('div');
 			actions.className = 'flex gap-2 mt-1';
-			const add = document.createElement('button');
-			add.type = 'button';
-			add.className = 'btn-2 btn-default';
-			add.textContent = 'Add to page';
-			add.title = 'Insert after the selected element, or at the end of the page';
-			add.addEventListener('click', () => {
-				if (this.dropManager.doc) this.dropManager.insertAtSelection(this.dropManager.createBlock(spec));
-			});
-			actions.appendChild(add);
+			actions.appendChild(button('Add to page', 'Insert after the selected element, or at the end of the page', () => {
+				if (this.drop.doc) this.drop.insertAtSelection(this.drop.createBlock(this._spec(template)));
+			}));
+			card.appendChild(actions);
 
-			card.append(frame, title, meta, actions);
 			this.list.appendChild(card);
-
-			if (this.observer) this.observer.observe(frame);
-			else this._loadThumbnail(frame);
+			this.thumbnails.observe(frame);
 
 			return { card, template, text: `${template.label} ${template.category} ${template.description || ''}`.toLowerCase() };
 		});
 	}
 
-	/** Render the template itself, scaled down, as its thumbnail. */
-	_loadThumbnail(frame) {
-		const template = this.templates.find(t => t.id === frame.dataset.templateId);
-		if (!template || frame.querySelector('iframe')) return;
+	_renderPageCards() {
+		this.pageCards = this.pageTemplates.map(pageTemplate => {
+			const sections = pageSections(pageTemplate, this.templates);
 
-		const iframe = document.createElement('iframe');
-		iframe.setAttribute('aria-hidden', 'true');
-		iframe.tabIndex = -1;
-		iframe.setAttribute('sandbox', '');
-		iframe.srcdoc = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>${BASE_CSS}
-			html, body { overflow: hidden; pointer-events: none; }</style></head>
-			<body>${resolveTemplate(template).content}</body></html>`;
+			const card = document.createElement('div');
+			card.className = CARD_CLASS;
 
-		const scale = (frame.clientWidth || 260) / THUMBNAIL_RENDER_WIDTH;
-		Object.assign(iframe.style, {
-			position: 'absolute',
-			top: '0',
-			left: '0',
-			width: `${THUMBNAIL_RENDER_WIDTH}px`,
-			height: `${Math.ceil(150 / scale)}px`,
-			border: '0',
-			transform: `scale(${scale})`,
-			transformOrigin: '0 0',
-			pointerEvents: 'none',
+			const frame = document.createElement('div');
+			frame.className = `${FRAME_CLASS} h-[190px]`;
+			const context = { ...SAMPLE_CONTEXT, pageName: pageTemplate.name };
+			frame.__renderThumbnail = () => renderThumbnail(
+				frame,
+				sections.map(t => resolveTemplate(t, context).content).join('\n'),
+				190
+			);
+			if (sections.length) card.appendChild(frame);
+
+			cardText(card, pageTemplate.label, pageTemplate.description || '');
+
+			if (sections.length) {
+				const meta = document.createElement('p');
+				meta.className = 'text-[11px] text-neutral-400';
+				meta.textContent = `${sections.length} sections`;
+				card.appendChild(meta);
+			}
+
+			const actions = document.createElement('div');
+			actions.className = 'flex gap-2 mt-1';
+			actions.appendChild(button('New page', 'Create a new page from this template', () => this.onNewPage(pageTemplate)));
+			if (sections.length) {
+				actions.appendChild(button('Add to this page', 'Append these sections to the current page', () => {
+					this.appendPageTemplate(pageTemplate);
+				}));
+			}
+			card.appendChild(actions);
+
+			this.pageList.appendChild(card);
+			if (sections.length) this.thumbnails.observe(frame);
+
+			return { card, text: `${pageTemplate.label} ${pageTemplate.description || ''}`.toLowerCase() };
 		});
-		frame.appendChild(iframe);
+	}
+
+	/** Append every section of a page template to the current page (one undo step). */
+	appendPageTemplate(pageTemplate) {
+		const context = projectContext(this.project);
+		const blocks = pageSections(pageTemplate, this.templates)
+			.map(template => this.drop.createBlock(resolveTemplate(template, context)));
+		this.drop.appendBlocks(blocks);
 	}
 
 	_applyFilter() {
 		const query = this.search.value.trim().toLowerCase();
+		const pages = this.mode === 'pages';
+
+		this.list.classList.toggle('hidden', pages);
+		this.filters.classList.toggle('hidden', pages);
+		this.pageList.classList.toggle('hidden', !pages);
+
 		this.cards.forEach(({ card, template, text }) => {
 			const matchesCategory = this.category === 'All' || template.category === this.category;
 			card.classList.toggle('hidden', !(matchesCategory && (!query || text.includes(query))));
+		});
+		this.pageCards.forEach(({ card, text }) => {
+			card.classList.toggle('hidden', Boolean(query) && !text.includes(query));
 		});
 	}
 }

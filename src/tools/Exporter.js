@@ -1,12 +1,14 @@
 import { formatHTML, stripEditorArtifacts, sanitize, dedent } from './Serializer.js';
 import StyleManager, { BASE_CSS } from './StyleManager.js';
-import { slugify } from './ProjectManager.js';
+import { slugify, pageFileName } from './ProjectManager.js';
+import { navContext, syncNavs } from './Templates.js';
 import { createZip } from './Zip.js';
+
+export { pageFileName };
 
 const ASSET_ATTRIBUTES = [['img', 'src'], ['video', 'src'], ['video', 'poster'], ['audio', 'src'], ['source', 'src']];
 const CSS_URL = /url\(\s*(['"]?)([^'")]+)\1\s*\)/g;
 
-export const pageFileName = (page, index) => (index === 0 ? 'index.html' : `${page.slug}.html`);
 
 const pageCSSFileName = (page, index) => (index === 0 ? 'index.css' : `${page.slug}.css`);
 
@@ -72,7 +74,7 @@ function rewriteCSSUrls(css, assets, prefix) {
  * Compile one page into a standalone document.
  * Returns { doc, css, templateCSS }, where css holds the page's generated rules.
  */
-function compilePage(page, assets) {
+function compilePage(page, assets, pages) {
 	const doc = document.implementation.createHTMLDocument(page.title || page.name);
 	doc.documentElement.lang = 'en';
 
@@ -87,6 +89,9 @@ function compilePage(page, assets) {
 	template.innerHTML = page.html || '';
 	sanitize(template.content);
 	doc.body.append(template.content);
+
+	// Menus marked data-nav always link to the current list of pages.
+	syncNavs(doc.body, navContext(pages, page));
 
 	// Template stylesheets move into the shared stylesheet.
 	const templateCSS = [];
@@ -166,7 +171,7 @@ export function buildSite(projectData, { bundleAssets = true } = {}) {
 	const files = [];
 
 	projectData.pages.forEach((page, index) => {
-		const compiled = compilePage(page, assets);
+		const compiled = compilePage(page, assets, projectData.pages);
 		templateCSS.push(...compiled.templateCSS);
 
 		addStylesheet(compiled.doc, 'css/style.css');
@@ -200,13 +205,13 @@ export async function exportSiteZip(projectData) {
 export function buildPageCode(projectData, pageId) {
 	const index = projectData.pages.findIndex(p => p.id === pageId);
 	const page = projectData.pages[index];
-	const compiled = compilePage(page, null);
+	const compiled = compilePage(page, null, projectData.pages);
 
 	addStylesheet(compiled.doc, 'css/style.css');
 	if (compiled.css) addStylesheet(compiled.doc, `css/${pageCSSFileName(page, index)}`);
 
 	// style.css is shared: it holds the template CSS of every page, as published.
-	const templateCSS = projectData.pages.flatMap(p => (p === page ? compiled : compilePage(p, null)).templateCSS);
+	const templateCSS = projectData.pages.flatMap(p => (p === page ? compiled : compilePage(p, null, projectData.pages)).templateCSS);
 
 	return {
 		fileName: pageFileName(page, index),
@@ -222,7 +227,7 @@ export function buildPageCode(projectData, pageId) {
  */
 export function buildPreviewHTML(projectData, pageId) {
 	const page = projectData.pages.find(p => p.id === pageId);
-	const compiled = compilePage(page, null);
+	const compiled = compilePage(page, null, projectData.pages);
 
 	const style = compiled.doc.createElement('style');
 	style.textContent = `${sharedStylesheet(compiled.templateCSS, projectData.siteCSS || '')}\n${compiled.css}`;
