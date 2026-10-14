@@ -217,7 +217,10 @@ class DropManager {
 	 * { label, type, content, container, kind: 'block' | 'template', id }
 	 */
 	createBlock(spec) {
-		const html = (spec.content || '').replace(/\{\{uid\}\}/g, () => Math.random().toString(36).slice(2, 8));
+		// One id per insert: every {{uid}} must expand to the same value so that
+		// radio names, ids and label[for] stay linked.
+		const uid = Math.random().toString(36).slice(2, 8);
+		const html = (spec.content || '').replace(/\{\{uid\}\}/g, uid);
 		const template = this.doc.createElement('template');
 		template.innerHTML = html.trim();
 		sanitize(template.content);
@@ -311,6 +314,7 @@ class DropManager {
 			delete node.dataset.structureId;
 		});
 
+		this._relinkIds(copy);
 		el.after(copy);
 		sources.forEach((src, i) => {
 			if (src.dataset.structureId) {
@@ -322,6 +326,28 @@ class DropManager {
 		this.commit();
 		this.select(copy);
 		return copy;
+	}
+
+	/**
+	 * Give a copied subtree fresh element ids and radio group names (updating
+	 * label[for] to match), so the copy does not hijack the original's controls.
+	 */
+	_relinkIds(root) {
+		const suffix = Math.random().toString(36).slice(2, 6);
+		const ids = new Map();
+		[root, ...root.querySelectorAll('[id]')].forEach(node => {
+			if (!node.id) return;
+			ids.set(node.id, `${node.id}-${suffix}`);
+			node.id = ids.get(node.id);
+		});
+		root.querySelectorAll('label[for]').forEach(label => {
+			if (ids.has(label.htmlFor)) label.htmlFor = ids.get(label.htmlFor);
+		});
+		// Radio groups are document-wide outside forms; inside a form the name is
+		// submitted data and the group is already scoped to that form.
+		root.querySelectorAll('input[type="radio"][name]').forEach(input => {
+			if (!input.closest('form')) input.name = `${input.name}-${suffix}`;
+		});
 	}
 
 	/** Move a block before/after its previous/next block sibling. */

@@ -70,7 +70,9 @@ function format(node, depth, out) {
 		return;
 	}
 	if (tag === 'style') {
-		const css = node.textContent.trim() ? dedent(node.textContent, pad + INDENT) : '';
+		// Raw CSS (site CSS, imported rules, SVG <style> text) must not close the element early.
+		const text = node.textContent.replace(/<\/(style)/gi, '<\\/$1');
+		const css = text.trim() ? dedent(text, pad + INDENT) : '';
 		out.push(pad + openTag(node), ...(css ? [css] : []), `${pad}</style>`);
 		return;
 	}
@@ -117,7 +119,7 @@ export function stripEditorArtifacts(root) {
 }
 
 /**
- * Remove scripts, inline event handlers and javascript: URLs from markup
+ * Remove scripts, inline event handlers, srcdoc documents and javascript: URLs from markup
  * that comes from outside the editor (imports, saved projects).
  */
 export function sanitize(root) {
@@ -127,7 +129,7 @@ export function sanitize(root) {
 		Array.from(el.attributes).forEach(attr => {
 			const name = attr.name.toLowerCase();
 			const value = attr.value.replace(/[\s\u0000-\u001f]/g, '').toLowerCase();
-			if (name.startsWith('on')) el.removeAttribute(attr.name);
+			if (name.startsWith('on') || name === 'srcdoc') el.removeAttribute(attr.name);
 			else if (['href', 'src', 'action', 'formaction', 'xlink:href'].includes(name) && value.startsWith('javascript:')) {
 				el.removeAttribute(attr.name);
 			}

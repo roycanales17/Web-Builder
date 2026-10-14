@@ -46,17 +46,17 @@ class AssetRegistry {
 	}
 
 	async fetchAll() {
-		const files = [];
-		for (const [url, name] of this.byUrl) {
+		const files = await Promise.all(Array.from(this.byUrl, async ([url, name]) => {
 			try {
 				const response = await fetch(url);
 				if (!response.ok) throw new Error(`HTTP ${response.status}`);
-				files.push({ name: `assets/${name}`, data: new Uint8Array(await response.arrayBuffer()) });
+				return { name: `assets/${name}`, data: new Uint8Array(await response.arrayBuffer()) };
 			} catch (err) {
 				console.warn(`Could not bundle asset ${url}`, err);
+				return null;
 			}
-		}
-		return files;
+		}));
+		return files.filter(Boolean);
 	}
 }
 
@@ -96,8 +96,13 @@ function compilePage(page, assets) {
 		style.remove();
 	});
 
-	// Every styled element gets an id the generated rules can target.
-	const used = new Set(Array.from(doc.querySelectorAll('[id]')).map(el => el.id));
+	// Every styled element gets an id the generated rules can target, so ids
+	// must be unique: a template added twice repeats its ids. Keep the first.
+	const used = new Set();
+	doc.querySelectorAll('[id]').forEach(el => {
+		if (used.has(el.id)) el.removeAttribute('id');
+		else used.add(el.id);
+	});
 	const counters = {};
 	const selectors = {};
 	Object.keys(page.styles || {}).forEach(structureId => {
@@ -200,11 +205,14 @@ export function buildPageCode(projectData, pageId) {
 	addStylesheet(compiled.doc, 'css/style.css');
 	if (compiled.css) addStylesheet(compiled.doc, `css/${pageCSSFileName(page, index)}`);
 
+	// style.css is shared: it holds the template CSS of every page, as published.
+	const templateCSS = projectData.pages.flatMap(p => (p === page ? compiled : compilePage(p, null)).templateCSS);
+
 	return {
 		fileName: pageFileName(page, index),
 		html: formatHTML(compiled.doc),
 		css: compiled.css,
-		sharedCSS: sharedStylesheet(compiled.templateCSS, projectData.siteCSS || ''),
+		sharedCSS: sharedStylesheet(templateCSS, projectData.siteCSS || ''),
 	};
 }
 

@@ -3,6 +3,9 @@ import HistoryManager from './HistoryManager.js';
 const STORAGE_KEY = 'web-builder:project';
 const PROJECT_VERSION = 1;
 
+/** Slugs whose file names the export already uses (index.html, css/style.css). */
+const RESERVED_SLUGS = ['index', 'style'];
+
 export function slugify(text) {
 	return String(text || '')
 		.toLowerCase()
@@ -42,7 +45,7 @@ export default class ProjectManager {
 		} else {
 			this.pages = [this._createPage('Home')];
 		}
-		this._openPage(saved?.currentId && this.getPage(saved.currentId) ? saved.currentId : this.pages[0].id, true);
+		this._openPage(saved?.currentId && this.getPage(saved.currentId) ? saved.currentId : this.pages[0].id);
 
 		this.drop.onChange(() => this.record());
 		// Blocks can ship default styles: { desktop: {...}, tablet: {...}, mobile: {...} }
@@ -89,7 +92,7 @@ export default class ProjectManager {
 		const base = slugify(name);
 		let slug = base;
 		let n = 2;
-		while (slug === 'index' || this.pages.some(p => p.slug === slug && p.id !== exceptId)) {
+		while (RESERVED_SLUGS.includes(slug) || this.pages.some(p => p.slug === slug && p.id !== exceptId)) {
 			slug = `${base}-${n++}`;
 		}
 		return slug;
@@ -145,7 +148,7 @@ export default class ProjectManager {
 		this.histories.delete(id);
 		if (id === this.currentId) {
 			this.currentId = null;
-			this._openPage(this.pages[Math.max(0, index - 1)].id, true);
+			this._openPage(this.pages[Math.max(0, index - 1)].id);
 		}
 		this.save();
 		this._emit();
@@ -158,11 +161,12 @@ export default class ProjectManager {
 		this._openPage(id);
 	}
 
-	_openPage(id, fromStorage = false) {
+	_openPage(id) {
 		const page = this.getPage(id);
 		this.currentId = id;
 		this.styles.load(page.styles);
-		this.drop.setContentHTML(page.html, { sanitizeInput: fromStorage });
+		// Any page may come from storage or an import, not only the first one opened.
+		this.drop.setContentHTML(page.html, { sanitizeInput: true });
 
 		if (!this.histories.has(id)) {
 			this.histories.set(id, new HistoryManager(this._snapshot()));
@@ -191,8 +195,10 @@ export default class ProjectManager {
 	/** Record the current canvas state as an undo step and autosave. */
 	record() {
 		this._syncCurrent();
-		this.histories.get(this.currentId)?.push(this._snapshot());
-		this.save();
+		// Same shape as _snapshot(), built from the state _syncCurrent just serialized.
+		const page = this.current;
+		this.histories.get(this.currentId)?.push(JSON.stringify({ html: page.html, styles: page.styles }));
+		this._persist(this._data());
 		this._emit();
 	}
 
@@ -214,7 +220,7 @@ export default class ProjectManager {
 		this.styles.load(styles);
 		this.drop.setContentHTML(html);
 		this._syncCurrent();
-		this.save();
+		this._persist(this._data());
 		this._emit();
 	}
 
@@ -243,6 +249,11 @@ export default class ProjectManager {
 
 	toJSON() {
 		this._syncCurrent();
+		return this._data();
+	}
+
+	/** Project data as currently held in the page objects (no canvas sync). */
+	_data() {
 		return {
 			app: 'web-builder',
 			version: PROJECT_VERSION,
@@ -253,8 +264,12 @@ export default class ProjectManager {
 	}
 
 	save() {
+		this._persist(this.toJSON());
+	}
+
+	_persist(data) {
 		try {
-			localStorage.setItem(STORAGE_KEY, JSON.stringify(this.toJSON()));
+			localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 			this.storageError = null;
 		} catch (err) {
 			// Storage can be full or unavailable (private mode); keep working in memory.
@@ -275,7 +290,7 @@ export default class ProjectManager {
 	static validate(data) {
 		if (!data || typeof data !== 'object' || !Array.isArray(data.pages) || !data.pages.length) return null;
 		const seen = new Set();
-		const slugs = new Set(['index']);
+		const slugs = new Set(RESERVED_SLUGS);
 		const pages = data.pages
 			.filter(p => p && typeof p === 'object')
 			.map((p, i) => {
@@ -312,7 +327,7 @@ export default class ProjectManager {
 		this.styles.setSiteCSS(project.siteCSS);
 		this.currentId = null;
 		const startId = this.getPage(project.currentId) ? project.currentId : this.pages[0].id;
-		this._openPage(startId, true);
+		this._openPage(startId);
 	}
 
 	/** Remove everything from the current page (undoable). */
