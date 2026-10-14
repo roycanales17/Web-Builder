@@ -1,8 +1,8 @@
 export default {
 	id: 'banner-1',
-	label: 'Banner 1',
-	thumbnail: '/resources/images/thumbnails/banners/banner-1.png',
-	category: 'Banner',
+	label: 'Hero — App Demo',
+	description: 'Gradient-over-photo hero with CTA',
+	category: 'Hero',
 	content: `
 	<section class="g--banner-hero-1">
 		<div class="g--banner-hero-1-overlay">
@@ -18,7 +18,7 @@ export default {
 		.g--banner-hero-1 {
 			position: relative;
 			height: 100vh;
-			background-image: url('/resources/images/banners/banner-1.avif');
+			background-image: url('{{assets}}banners/banner-1.avif');
 			background-size: cover;
 			background-position: center;
 			display: flex;

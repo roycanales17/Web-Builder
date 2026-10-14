@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>Drag-and-Drop Builder</title>
+	<link rel="icon" href="data:,">
 	<link rel="stylesheet" href="dist/utilities.css">
 </head>
 <body>
@@ -14,41 +16,52 @@
 
 			<!-- Viewport -->
 			<div class="flex flex-row items-center p-1 bg-gray-100 rounded-[6px]">
-				<button class="btn active" data-viewport="desktop">
+				<button class="btn active" data-viewport="desktop" title="Desktop (base styles)">
 					<i class="fas fa-desktop w-4 h-4 mr-3"></i>
 					Desktop
 				</button>
-				<button class="btn" data-viewport="tablet">
+				<button class="btn" data-viewport="tablet" title="Tablet (styles apply up to 900px)">
 					<i class="fas fa-tablet-screen-button w-4 h-4 mr-3"></i>
 					Tablet
 				</button>
-				<button class="btn" data-viewport="mobile">
+				<button class="btn" data-viewport="mobile" title="Mobile (styles apply up to 575px)">
 					<i class="fas fa-mobile-screen-button w-4 h-4 mr-3"></i>
 					Mobile
 				</button>
 			</div>
 
-			<!-- Title -->
-			<div class="font-medium text-sm leading-5 text-[hsl(var(--title-color))]">
-				Website Builder
+			<!-- Pages -->
+			<div class="flex flex-row items-center gap-1">
+				<i class="fas fa-file-lines w-4 h-4 text-neutral-500"></i>
+				<select id="page-select" class="h-8 max-w-[200px] px-2 text-sm font-medium text-neutral-700 bg-transparent rounded-md hover:bg-gray-100 cursor-pointer focus:outline-none" title="Switch page"></select>
+				<button class="btn !px-2" id="btn-page-add" title="Add page"><i class="fas fa-plus w-4 h-4"></i></button>
+				<button class="btn !px-2" id="btn-page-duplicate" title="Duplicate page"><i class="fas fa-clone w-4 h-4"></i></button>
+				<button class="btn !px-2" id="btn-page-delete" title="Delete page"><i class="fas fa-trash w-4 h-4"></i></button>
 			</div>
 
 			<!-- Toolbar -->
 			<div class="flex flex-row items-center p-1 gap-[2px]">
-				<button class="btn" id="btn-toolbar-preview">
+				<button class="btn !px-2 disabled:opacity-40 disabled:cursor-not-allowed" id="btn-toolbar-undo" title="Undo (Ctrl/⌘+Z)" disabled>
+					<i class="fas fa-rotate-left w-4 h-4"></i>
+				</button>
+				<button class="btn !px-2 disabled:opacity-40 disabled:cursor-not-allowed" id="btn-toolbar-redo" title="Redo (Ctrl/⌘+Shift+Z)" disabled>
+					<i class="fas fa-rotate-right w-4 h-4"></i>
+				</button>
+				<div class="w-px h-6 mx-2 bg-gray-300"></div>
+				<button class="btn" id="btn-toolbar-preview" title="Preview the current page in a new window">
 					<i class="fas fa-eye w-4 h-4 mr-3"></i>
 					Preview
 				</button>
-				<button class="btn" id="btn-toolbar-debug">
+				<button class="btn" id="btn-toolbar-debug" title="Outline containers and add spacing while dragging">
 					<i class="fas fa-border-none w-4 h-4 mr-3"></i>
 					Debug
 				</button>
-				<div class="w-px h-6 mx-2 bg-black"></div>
-				<button class="btn">
+				<div class="w-px h-6 mx-2 bg-gray-300"></div>
+				<button class="btn" id="btn-toolbar-code" title="View the generated HTML and CSS">
 					<i class="fas fa-code w-4 h-4 mr-3"></i>
 					Code
 				</button>
-				<button class="btn active">
+				<button class="btn active" id="btn-toolbar-publish" title="Download every page with generated CSS and images as a ZIP">
 					<i class="fas fa-upload w-4 h-4 mr-3"></i>
 					Publish
 				</button>
@@ -59,18 +72,18 @@
 		<div class="flex flex-row h-full min-h-0 bg-[#FAFAFA]">
 
 			<!-- Canvas -->
-			<div class="flex justify-center items-center w-full h-full p-4 min-h-0 bg-neutral-100">
+			<div class="flex justify-center items-center w-full h-full p-4 min-h-0 min-w-0 bg-neutral-100">
 				<div id="drop-zone" class="h-full w-full max-w-full bg-white shadow-sm mx-auto transition-all duration-300 ease-in-out">
 
 					<!-- Iframe -->
-					<iframe id="drop-zone-iframe" class="h-full w-full" src="src/buffer/canvas.html">
+					<iframe id="drop-zone-iframe" class="h-full w-full" src="src/buffer/canvas.html" title="Canvas">
 					</iframe>
 
 				</div>
 			</div>
 
 			<!-- Configurations -->
-			<div class="flex flex-col h-full w-[320px] border border-gray-200 relative">
+			<div class="flex flex-col h-full w-[320px] shrink-0 border border-gray-200 relative" id="config-panel">
 
 				<!-- Tab -->
 				<div class="flex flex-row gap-1 justify-around w-full text-gray-500 py-1 px-2 bg-[#F2F2F2] border-b border-[hsl(0,0%,90%)] rounded-none">
@@ -81,15 +94,15 @@
 				</div>
 
 				<!-- content -->
-				<div class="flex-1 overflow-y-auto bg-[#FCFCFC] min-h-0 pb-3">
+				<div class="flex-1 overflow-y-auto bg-[#FCFCFC] min-h-0 pb-12">
 
 					<!-- Blocks Manager -->
-					<div class="hidden flex-col overflow-y-auto [&.active]:flex active" data-tab="blocks">
+					<div class="hidden flex-col [&.active]:flex active" data-tab="blocks">
 
 						<!-- Blocks Header -->
 						<div class="flex flex-col gap-1 px-3 py-4 border-b border-gray-200">
 							<h3 class="text-neutral-700 font-medium text-sm leading-5">Block Manager</h3>
-							<p class="text-neutral-500 text-xs leading-4">Drag blocks to the canvas</p>
+							<p class="text-neutral-500 text-xs leading-4">Drag blocks to the canvas, or click to add after the selection</p>
 						</div>
 
 						<!-- Blocks Lists -->
@@ -98,29 +111,29 @@
 					</div>
 
 					<!-- Editor Manager -->
-					<div class="hidden flex-col h-full [&.active]:flex" data-tab="editor">
-						<div class="h-full w-full flex flex-col items-center justify-center gap-4">
-							<div class="w-15 h-15 flex items-center justify-center">
-								<i class="fas fa-gear text-[40px] text-gray-400"></i>
-							</div>
-							<label class="text-neutral-400 text-sm">Select an element to edit its properties</label>
-						</div>
+					<div class="hidden flex-col [&.active]:flex" data-tab="editor" id="editor-panel">
 					</div>
 
 					<!-- Structure View -->
 					<div class="hidden flex-col h-full [&.active]:flex" data-tab="structure">
 
 						<!-- Structure Lists Header -->
-						<div class="flex flex-col gap-1 px-3 py-4 border-b border-gray-200">
-							<h3 class="text-neutral-700 font-medium text-sm leading-5">Structure View</h3>
-							<p class="text-neutral-500 text-xs leading-4">Hierarchy of elements</p>
+						<div class="flex flex-row justify-between items-center gap-2 px-3 py-4 border-b border-gray-200">
+							<div class="flex flex-col gap-1">
+								<h3 class="text-neutral-700 font-medium text-sm leading-5">Structure View</h3>
+								<p class="text-neutral-500 text-xs leading-4">Hierarchy of elements</p>
+							</div>
+							<button class="btn-2 btn-default !w-auto gap-1.5" id="btn-clear-page" title="Remove everything from this page">
+								<i class="fas fa-eraser w-3 h-3"></i>
+								Clear
+							</button>
 						</div>
 
 						<!-- Structure Lists Content -->
 						<div class="flex flex-col w-full h-full">
 
 							<!-- Structural Blocks -->
-							<div id="structural-blocks" class="hidden [&.active]flex flex-col gap-2 p-2 w-full h-full">
+							<div id="structural-blocks" class="hidden flex-col gap-2 p-2 w-full outline-none">
 							</div>
 
 							<!-- Skeleton -->
@@ -135,67 +148,71 @@
 					</div>
 
 					<!-- Components -->
-					<div class="hidden flex-col h-full [&.active]:flex" data-tab="components">
+					<div class="hidden flex-col [&.active]:flex" data-tab="components">
 
 						<!-- Component Header -->
 						<div class="flex flex-col gap-1 px-3 py-4 border-b border-gray-200">
 							<h3 class="text-neutral-700 font-medium text-sm leading-5">Components</h3>
-							<p class="text-neutral-500 text-xs leading-4">Pre-built component templates</p>
+							<p class="text-neutral-500 text-xs leading-4">Pre-built section templates</p>
 						</div>
 
-						<!-- Additional Actions -->
+						<!-- Project import / export -->
 						<div class="flex flex-row gap-2 px-3 py-4 border-b border-gray-200">
-							<button class="!inline-block btn w-100 text-center border border-gray-200">
+							<button class="btn flex-1 justify-center border border-gray-200" id="btn-project-import" title="Import a project (.json) or an HTML page">
 								<i class="fas fa-file-import w-4 h-4 mr-3 rotate-180"></i>
 								Import
 							</button>
-							<button class="!inline-block btn w-100 text-center border border-gray-200">
+							<button class="btn flex-1 justify-center border border-gray-200" id="btn-project-export" title="Download the whole project as .json (re-importable)">
 								<i class="fas fa-file-export w-4 h-4 mr-3"></i>
 								Export
 							</button>
+							<input type="file" id="project-import-file" accept=".json,application/json,.html,text/html" class="hidden">
 						</div>
 
-						<!-- Imported Components -->
-						<div class="flex flex-col gap-2 p-5">
-
-							<!-- Example Component Card -->
-							<div class="flex flex-col gap-2 border border-gray-300 rounded-md p-3">
-								<div class="w-full h-[150px] border border-gray-200 rounded-md overflow-hidden relative group">
-									<img
-										class="object-fill w-full h-full transition-opacity duration-200 group-hover:opacity-70 cursor-grab"
-										src="blocks/resources/thumbnails/banners/banner-2.png"
-										alt="thumbnail"
-									/>
-
-									<div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
-										<i class="fas fa-arrows-alt text-white text-2xl drop-shadow-md pointer-events-none"></i>
-									</div>
-								</div>
-
-								<label class="text-md text-black leading-none">Hero Section</label>
-								<p class="text-xs">Large header with title and CTA</p>
-
-								<div class="flex gap-2 mt-1">
-									<button class="btn-2 btn-default">Preview</button>
-									<button class="btn-2 btn-default">Remove</button>
-								</div>
+						<!-- Search & filters -->
+						<div class="flex flex-col gap-3 px-3 pt-4">
+							<div class="relative">
+								<i class="fas fa-magnifying-glass absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-neutral-400"></i>
+								<input type="search" id="components-search" placeholder="Search templates…" class="w-full pl-8 pr-2 py-1.5 text-xs border border-gray-200 rounded-md bg-white focus:outline-none focus:border-[#0072F4]">
 							</div>
+							<div class="flex flex-wrap gap-1.5" id="components-filters"></div>
+						</div>
 
+						<!-- Templates -->
+						<div class="flex flex-col gap-3 p-3" id="components-list">
 						</div>
 					</div>
 				</div>
 
 				<!-- Code -->
 				<div class="absolute bottom-0 right-0 z-10 flex flex-row justify-between items-center h-10 w-full border-t border-gray-200 font-medium text-xs pl-1 pr-3 py-5 bg-[#FCFCFC]">
-					<button class="btn">
+					<button class="btn" id="btn-view-code">
 						<i class="fas fa-code w-4 h-4 mr-3"></i>
 						View Code
 					</button>
-					<i class="fas fa-chevron-up w-4 h-4"></i>
+					<span class="text-[11px] text-neutral-400" id="save-status">Saved locally</span>
 				</div>
 			</div>
 		</div>
 	</div>
+
+	<!-- Code Viewer -->
+	<div id="code-modal" class="hidden fixed inset-0 z-50 items-center justify-center bg-black/40 p-6 [&.open]:flex">
+		<div class="flex flex-col w-full max-w-5xl h-full max-h-[85vh] bg-white rounded-lg shadow-xl overflow-hidden">
+			<div class="flex flex-row items-center justify-between gap-4 px-4 h-12 border-b border-gray-200">
+				<div class="flex flex-row items-center gap-1" id="code-tabs"></div>
+				<div class="flex flex-row items-center gap-1">
+					<button class="btn" id="btn-code-copy"><i class="fas fa-copy w-4 h-4 mr-2"></i>Copy</button>
+					<button class="btn active" id="btn-code-download"><i class="fas fa-download w-4 h-4 mr-2"></i>Download site (.zip)</button>
+					<button class="btn !px-2" id="btn-code-close" title="Close (Esc)"><i class="fas fa-xmark w-4 h-4"></i></button>
+				</div>
+			</div>
+			<textarea id="code-output" class="flex-1 w-full p-4 font-mono text-xs leading-5 text-neutral-800 bg-neutral-50 resize-none focus:outline-none" readonly spellcheck="false"></textarea>
+		</div>
+	</div>
+
+	<!-- Toast -->
+	<div id="toast" class="fixed bottom-4 left-4 z-50 px-4 py-2 rounded-md bg-neutral-900 text-white text-xs shadow-lg opacity-0 pointer-events-none transition-opacity duration-300 [&.show]:opacity-100"></div>
 
 	<script type="module" src="dist/icons.js"></script>
 	<script src="dist/main.js"></script>

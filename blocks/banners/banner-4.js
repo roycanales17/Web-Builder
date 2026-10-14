@@ -1,8 +1,8 @@
 export default {
-id: 'banner-4',
-	label: 'Banner 4',
-	thumbnail: '/resources/images/thumbnails/banners/banner-4.png',
-	category: 'Banner',
+	id: 'banner-4',
+	label: 'Hero — Portfolio',
+	description: 'Personal intro with portrait photo',
+	category: 'Hero',
 	content: `
 	<div class="g--banner-hero-4">
 		<div class="g--banner-hero-4-intro-text">
@@ -10,8 +10,8 @@ id: 'banner-4',
 			<h1>Hannah<br>Morales</h1>
 			<p class="g--banner-hero-4-highlight">I'm a Creative<br>Marketing Assistant</p>
 		</div>
-		<div class="profile-photo">
-			<img src="/resources/images/banners/banner-4.avif" alt="Hannah Morales" />
+		<div class="g--banner-hero-4-photo">
+			<img src="{{assets}}banners/banner-4.avif" alt="Hannah Morales" />
 		</div>
 	</div>
 	
@@ -64,7 +64,7 @@ id: 'banner-4',
 			margin-top: 10px;
 		}
 	
-		.profile-photo {
+		.g--banner-hero-4-photo {
 			background-color: white;
 			padding: 16px;
 			border-radius: 24px;
@@ -74,7 +74,7 @@ id: 'banner-4',
 			justify-content: center;
 		}
 	
-		.profile-photo img {
+		.g--banner-hero-4-photo img {
 			width: 500px;
 			min-height: 470px;
 			border-radius: 16px;
@@ -104,7 +104,7 @@ id: 'banner-4',
 				font-size: 1.2em;
 			}
 	
-			.profile-photo img {
+			.g--banner-hero-4-photo img {
 				width: 100%;
 				max-width: 340px;
 				min-height: auto;

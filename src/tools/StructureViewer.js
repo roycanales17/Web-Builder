@@ -1,446 +1,368 @@
-import HistoryManager from './HistoryManager.js';
+import { BLOCK_MIME } from './DropManager.js';
 
 export default class StructureViewer {
 	constructor(structureRootId, dropManager) {
 		this.container = document.getElementById(structureRootId);
 		this.skeleton = document.getElementById(`${structureRootId}-skeleton`);
 		this.dropManager = dropManager;
-		this.blockClassName = "structure-block";
-		this.bufferedStructureItem = {};
+		this.blockClassName = 'structure-block';
 		this.expandedNodes = new Set();
 		this.selectedBlock = null;
 
-		// floating drop-line element
 		this.dropLine = this.createDropLine();
-
-		// state for current hover / drop
 		this._lastHover = null;
 		this.dropMeta = null; // { target, pos }
 
-		// guards
-		this._containerDropInitialized = false;
-		this._delegationInit = false;
-
 		if (!this.container) {
 			console.warn(`StructureViewer: container #${structureRootId} not found`);
+			return;
 		}
 		if (!this.skeleton) {
 			console.warn(`StructureViewer: skeleton #${structureRootId}-skeleton not found`);
 		}
 
-		// Listen for clicks outside to clear selection
-		document.addEventListener("click", (e) => {
-			if (
-				this.selectedBlock &&
-				!this.container.contains(e.target)
-			) {
-				this.selectedBlock.classList.remove("selected");
-				this.selectedBlock = null;
-			}
-		});
+		this.setupContainerDropZone();
+		this.setupDragDelegation();
+		this.setupKeyboard();
 
+		dropManager.onSelect(() => this.syncSelection());
 	}
 
 	updateTree(structure) {
-		this.container.innerHTML = "";
+		this.container.replaceChildren(...structure.map(item => this._render(item)));
 
-		structure.forEach(item => {
-			const block = this._render(item);
-			this.container.appendChild(block);
-		});
+		const hasItems = structure.length > 0;
+		this.container.classList.toggle('hidden', !hasItems);
+		this.container.classList.toggle('flex', hasItems);
+		if (this.skeleton) this.skeleton.classList.toggle('hidden', hasItems);
 
-		this.setupContainerDropZone();
-		this.setupDragDelegation();
+		this.syncSelection();
+	}
 
-		if (structure && structure.length > 0) {
-			this.container.classList.remove("hidden");
-			this.container.classList.add("flex");
-			if (this.skeleton) this.skeleton.classList.add("hidden");
-		} else {
-			this.container.classList.add("hidden");
-			this.container.classList.remove("flex");
-			if (this.skeleton) this.skeleton.classList.remove("hidden");
+	/** Highlight the tree row of the block that contains the canvas selection. */
+	syncSelection() {
+		if (this.selectedBlock) this.selectedBlock.classList.remove('selected');
+		this.selectedBlock = null;
+
+		const selected = this.dropManager.selected;
+		const block = selected && selected.closest('[data-buffer]');
+		const id = block && block.dataset.structureId;
+		if (!id) return;
+
+		const row = this.container.querySelector(`[data-element-id="${CSS.escape(id)}"]`);
+		if (!row) return;
+
+		// Expand collapsed ancestors so the selection is visible.
+		for (let wrapper = row.parentElement; wrapper && wrapper !== this.container; wrapper = wrapper.parentElement) {
+			if (wrapper.classList.contains('structure-children') && wrapper.classList.contains('hidden')) {
+				const owner = wrapper.closest('.' + this.blockClassName);
+				this._setExpanded(owner, wrapper, true);
+			}
 		}
+
+		this.selectedBlock = row;
+		row.classList.add('selected');
+		row.scrollIntoView({ block: 'nearest' });
 	}
 
 	_render(item) {
-		const block = document.createElement("div");
-		const hasChildren = item.children?.length > 0;
-
+		const block = document.createElement('div');
 		block.dataset.elementId = item.element.dataset.structureId;
-
-		this.bufferedStructureItem[block.dataset.elementId] = {
-			tag: item.tag,
-			context: item.context,
-			label: item.label,
-		};
-
-		this._blockInterface(block, item, hasChildren);
+		block.dataset.container = item.container ? '1' : '';
+		this._blockInterface(block, item, item.children?.length > 0);
 		return block;
+	}
+
+	_setExpanded(block, childrenWrapper, expanded) {
+		childrenWrapper.classList.toggle('hidden', !expanded);
+		const eye = block.querySelector(':scope > .structure-parent-row .structure-toggle');
+		if (eye) eye.innerHTML = `<i class="fas ${expanded ? 'fa-eye' : 'fa-eye-slash'} structure-eye"></i>`;
+		if (expanded) this.expandedNodes.add(block.dataset.elementId);
+		else this.expandedNodes.delete(block.dataset.elementId);
 	}
 
 	_blockInterface(block, item, hasChildren) {
 		block.className = this.blockClassName;
-		block.setAttribute("draggable", "true");
+		block.setAttribute('draggable', 'true');
 
-		const parentRow = document.createElement("div");
-		parentRow.className = "structure-parent-row";
+		const parentRow = document.createElement('div');
+		parentRow.className = 'structure-parent-row';
 
-		const label = document.createElement("span");
-		label.className = "structure-label";
-		label.textContent = item.label || item.tag || "Block";
+		const label = document.createElement('span');
+		label.className = 'structure-label';
+		label.textContent = item.label || item.tag || 'Block';
 
-		const actions = document.createElement("div");
-		actions.className = "structure-actions";
+		const actions = document.createElement('div');
+		actions.className = 'structure-actions';
 
-		const childrenWrapper = document.createElement("div");
-		childrenWrapper.className = "structure-children hidden";
-
-		// --- Restore expanded state ---
-		if (this.expandedNodes.has(block.dataset.elementId)) {
-			childrenWrapper.classList.remove("hidden");
-		}
+		const childrenWrapper = document.createElement('div');
+		childrenWrapper.className = 'structure-children';
+		const expanded = this.expandedNodes.has(block.dataset.elementId);
+		if (!expanded) childrenWrapper.classList.add('hidden');
 
 		if (hasChildren) {
-			const eyeSpan = document.createElement("span");
-
-			// --- Correct initial icon based on expanded state ---
-			if (this.expandedNodes.has(block.dataset.elementId)) {
-				eyeSpan.innerHTML = `<i class="fas fa-eye structure-eye"></i>`;
-			} else {
-				eyeSpan.innerHTML = `<i class="fas fa-eye-slash structure-eye"></i>`;
-			}
-
-			eyeSpan.addEventListener("click", (ev) => {
+			const eyeSpan = document.createElement('span');
+			eyeSpan.className = 'structure-toggle';
+			eyeSpan.title = 'Show / hide children';
+			eyeSpan.innerHTML = `<i class="fas ${expanded ? 'fa-eye' : 'fa-eye-slash'} structure-eye"></i>`;
+			eyeSpan.addEventListener('click', ev => {
 				ev.stopPropagation();
-				const isHidden = childrenWrapper.classList.contains("hidden");
-
-				if (isHidden) {
-					childrenWrapper.classList.remove("hidden");
-					eyeSpan.innerHTML = `<i class="fas fa-eye structure-eye"></i>`;
-					this.expandedNodes.add(block.dataset.elementId);
-				} else {
-					childrenWrapper.classList.add("hidden");
-					eyeSpan.innerHTML = `<i class="fas fa-eye-slash structure-eye"></i>`;
-					this.expandedNodes.delete(block.dataset.elementId);
-				}
+				this._setExpanded(block, childrenWrapper, childrenWrapper.classList.contains('hidden'));
 			});
-
 			actions.appendChild(eyeSpan);
 		}
 
-		// Trash icon
-		const trashSpan = document.createElement("span");
-		trashSpan.innerHTML = `<i class="fas fa-trash structure-trash"></i>`;
-		trashSpan.addEventListener("click", (ev) => {
+		const trashSpan = document.createElement('span');
+		trashSpan.title = 'Delete';
+		trashSpan.innerHTML = '<i class="fas fa-trash structure-trash"></i>';
+		trashSpan.addEventListener('click', ev => {
 			ev.stopPropagation();
-			if (confirm("Are you sure you want to delete it?")) {
-				const id = block.dataset.elementId;
-				const compiledEl = this.findCompiledEl(id);
-
-				if (compiledEl) {
-					compiledEl.remove();
-					this.updateTree(this.dropManager.getStructure());
-				}
+			const compiledEl = this.findCompiledEl(block.dataset.elementId);
+			if (compiledEl && confirm('Are you sure you want to delete it?')) {
+				this.dropManager.removeElement(compiledEl);
 			}
 		});
 		actions.appendChild(trashSpan);
 
-		// Drag icon
-		const dragIconSpan = document.createElement("span");
-		dragIconSpan.innerHTML = `<i class="fas fa-up-down-left-right structure-drag"></i>`;
+		const dragIconSpan = document.createElement('span');
+		dragIconSpan.title = 'Drag to move';
+		dragIconSpan.innerHTML = '<i class="fas fa-up-down-left-right structure-drag"></i>';
 		actions.appendChild(dragIconSpan);
 
-		parentRow.appendChild(label);
-		parentRow.appendChild(actions);
+		parentRow.append(label, actions);
 		block.appendChild(parentRow);
 
-		parentRow.addEventListener("click", (e) => {
+		parentRow.addEventListener('click', e => {
 			e.stopPropagation();
-
-			// clear old selection
-			if (this.selectedBlock) {
-				this.selectedBlock.classList.remove("selected");
-			}
-
-			// set new
-			this.selectedBlock = block;
-			block.classList.add("selected");
-			this.container.focus(); // allow keyboard nav
+			const compiledEl = this.findCompiledEl(block.dataset.elementId);
+			if (!compiledEl) return;
+			this.dropManager.select(compiledEl);
+			compiledEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+			this.container.focus({ preventScroll: true }); // allow keyboard nav
 		});
 
 		if (hasChildren) {
-			item.children.forEach(child => {
-				const childBlock = this._render(child);
-				childrenWrapper.appendChild(childBlock);
-			});
+			item.children.forEach(child => childrenWrapper.appendChild(this._render(child)));
 		}
 		block.appendChild(childrenWrapper);
 	}
 
 	// ---------------------- DROP ZONE HANDLING ----------------------
 
-	setupContainerDropZone() {
-		if (this._containerDropInitialized || !this.container) return;
-		this._containerDropInitialized = true;
+	_isNewBlockDrag(e) {
+		return Array.from(e.dataTransfer?.types || []).includes(BLOCK_MIME);
+	}
 
-		this.container.addEventListener("dragover", (e) => {
-			if (!this.dropManager?.draggedElement) {
+	setupContainerDropZone() {
+		this.container.addEventListener('dragover', e => {
+			if (!this.dropManager.draggedElement && !this._isNewBlockDrag(e)) {
 				this._clearHoverState();
 				return;
 			}
 			e.preventDefault();
 
 			let under = document.elementFromPoint(e.clientX, e.clientY);
-			if (!under || !this.container.contains(under)) {
+			let hover = under && this.container.contains(under) ? under.closest('.' + this.blockClassName) : null;
+			if (hover && hover.classList.contains('dragging')) hover = null;
+
+			if (!hover) {
 				this._handleContainerEdgeHover(e);
 				return;
 			}
 
-			let hover = under.closest("." + this.blockClassName);
-			if (hover && hover.classList.contains("dragging")) {
-				hover.style.pointerEvents = "none";
-				const nextUnder = document.elementFromPoint(e.clientX, e.clientY);
-				hover.style.pointerEvents = "";
-				hover = nextUnder ? nextUnder.closest("." + this.blockClassName) : null;
+			const rect = hover.querySelector('.structure-parent-row').getBoundingClientRect();
+			const zone = rect.height > 0 ? (e.clientY - rect.top) / rect.height : 0.5;
+			const canNest = hover.dataset.container === '1';
+
+			if (this._lastHover && this._lastHover !== hover) this._lastHover.classList.remove('drop-inside');
+			this._lastHover = hover;
+			this.dropLine.style.display = 'none';
+			hover.classList.remove('drop-inside');
+
+			if (canNest && zone >= 0.25 && zone <= 0.75) {
+				hover.classList.add('drop-inside');
+				this.dropMeta = { target: hover, pos: 'inside' };
+			} else if (zone < (canNest ? 0.25 : 0.5)) {
+				this._showDropLine(rect.left, hover.getBoundingClientRect().top, rect.width);
+				this.dropMeta = { target: hover, pos: 'above' };
+			} else {
+				this._showDropLine(rect.left, hover.getBoundingClientRect().bottom, rect.width);
+				this.dropMeta = { target: hover, pos: 'below' };
 			}
-
-			if (hover && this.container.contains(hover)) {
-				const rect = hover.getBoundingClientRect();
-				const offsetY = e.clientY - rect.top;
-				const zone = rect.height > 0 ? offsetY / rect.height : 0.5;
-
-				if (this._lastHover && this._lastHover !== hover) {
-					this._lastHover.classList.remove("drop-inside");
-				}
-				this._lastHover = hover;
-				this.dropLine.style.display = "none";
-
-				if (zone < 0.25) {
-					// ABOVE
-					this._showDropLine(rect.left, rect.top, rect.width);
-					this.dropMeta = { target: hover, pos: "above" };
-				} else if (zone > 0.75) {
-					// BELOW
-					this._showDropLine(rect.left, rect.bottom, rect.width);
-					this.dropMeta = { target: hover, pos: "below" };
-				} else {
-					// INSIDE
-					hover.classList.add("drop-inside");
-					this.dropMeta = { target: hover, pos: "inside" };
-				}
-				return;
-			}
-
-			this._handleContainerEdgeHover(e);
 		});
 
-		this.container.addEventListener("dragleave", () => {
-			this._clearHoverState();
+		this.container.addEventListener('dragleave', e => {
+			if (!this.container.contains(e.relatedTarget)) this._clearHoverState();
 		});
 
-		this.container.addEventListener("drop", (e) => {
+		this.container.addEventListener('drop', e => {
 			e.preventDefault();
-			this.dropLine.style.display = "none";
-
-			const dragged = this.dropManager.draggedElement;
-			if (!dragged || !this.dropMeta) return;
-
-			const { target, pos } = this.dropMeta;
-			let compiledTarget = null;
-			if (target) {
-				const id = target.dataset.elementId;
-				compiledTarget = this.findCompiledEl(id);
-			}
-
-			if (pos === "above" || pos === "below") {
-				this.dropManager.insertSorted(compiledTarget?.parentElement, dragged, compiledTarget, pos);
-			} else if (pos === "inside") {
-				compiledTarget?.appendChild(dragged);
-			} else if (pos === "empty") {
-				this.dropManager.root.appendChild(dragged);
-			} else if (pos === "above-first") {
-				const firstBlock = this.container.querySelector("." + this.blockClassName);
-				if (firstBlock) {
-					const id = firstBlock.dataset.elementId;
-					const compiledFirst = this.findCompiledEl(id);
-					this.dropManager.insertSorted(compiledFirst.parentElement, dragged, compiledFirst, "above");
-				}
-			} else if (pos === "below-last") {
-				const lastBlock = this.container.querySelectorAll("." + this.blockClassName);
-				if (lastBlock.length) {
-					const last = lastBlock[lastBlock.length - 1];
-					const id = last.dataset.elementId;
-					const compiledLast = this.findCompiledEl(id);
-					this.dropManager.insertSorted(compiledLast.parentElement, dragged, compiledLast, "below");
-				}
-			}
-
-			this.dropManager.draggedElement = null;
+			const meta = this.dropMeta;
 			this._clearHoverState();
-			this.updateTree(this.dropManager.getStructure());
+			if (!meta) return;
+
+			const manager = this.dropManager;
+			let dragged = manager.draggedElement;
+			const raw = e.dataTransfer.getData(BLOCK_MIME);
+			if (raw) {
+				try {
+					dragged = manager.createBlock(JSON.parse(raw));
+				} catch (err) {
+					return;
+				}
+			}
+			if (!dragged) return;
+
+			const body = manager.doc.body;
+			const target = meta.target ? this.findCompiledEl(meta.target.dataset.elementId) : null;
+			if (target && (target === dragged || dragged.contains(target))) return;
+
+			let inserted = false;
+			if ((meta.pos === 'above' || meta.pos === 'below') && target) {
+				inserted = manager.insertSorted(target.parentElement, dragged, target, meta.pos);
+			} else if (meta.pos === 'inside' && target) {
+				inserted = manager.insertSorted(manager.dropZoneFor(target), dragged);
+			} else if (meta.pos === 'end') {
+				inserted = manager.insertSorted(body, dragged);
+			}
+
+			manager.draggedElement = null;
+			if (inserted) manager.select(dragged);
 		});
 	}
 
 	_handleContainerEdgeHover(e) {
-		if (!this.dropManager?.draggedElement) {
-			this._clearHoverState();
-			return;
-		}
+		const blocks = this.container.querySelectorAll(':scope > .' + this.blockClassName);
+		this._clearHoverHighlight();
 
-		const blocks = this.container.querySelectorAll("." + this.blockClassName);
 		if (blocks.length === 0) {
 			const rect = this.container.getBoundingClientRect();
 			this._showDropLine(rect.left, rect.top, rect.width);
-			this.dropMeta = { target: null, pos: "empty" };
+			this.dropMeta = { target: null, pos: 'end' };
 			return;
 		}
 
-		const firstBlock = blocks[0];
-		const lastBlock = blocks[blocks.length - 1];
-		const rectFirst = firstBlock.getBoundingClientRect();
-		const rectLast = lastBlock.getBoundingClientRect();
+		const first = blocks[0];
+		const last = blocks[blocks.length - 1];
+		const rectFirst = first.getBoundingClientRect();
+		const rectLast = last.getBoundingClientRect();
 
 		if (e.clientY < rectFirst.top) {
 			this._showDropLine(rectFirst.left, rectFirst.top, rectFirst.width);
-			this.dropMeta = { target: firstBlock, pos: "above-first" };
-			this._clearHoverHighlight();
-			return;
-		}
-
-		if (e.clientY > rectLast.bottom) {
+			this.dropMeta = { target: first, pos: 'above' };
+		} else {
+			// Anything below the last top-level row appends to the page.
 			this._showDropLine(rectLast.left, rectLast.bottom, rectLast.width);
-			this.dropMeta = { target: lastBlock, pos: "below-last" };
-			this._clearHoverHighlight();
-			return;
+			this.dropMeta = { target: null, pos: 'end' };
 		}
-
-		this._clearHoverState();
 	}
 
 	_clearHoverState() {
-		this.dropLine.style.display = "none";
+		this.dropLine.style.display = 'none';
 		this._clearHoverHighlight();
 		this.dropMeta = null;
 	}
 
 	_clearHoverHighlight() {
 		if (this._lastHover) {
-			this._lastHover.classList.remove("drop-inside");
+			this._lastHover.classList.remove('drop-inside');
 			this._lastHover = null;
 		}
 	}
 
 	_showDropLine(left, top, width) {
 		Object.assign(this.dropLine.style, {
-			width: width + "px",
-			left: left + "px",
-			top: top + "px",
-			display: "block"
+			width: `${width}px`,
+			left: `${left}px`,
+			top: `${top}px`,
+			display: 'block',
 		});
 	}
 
 	// ---------------------- DRAG DELEGATION ----------------------
 
 	setupDragDelegation() {
-		if (this._delegationInit || !this.container) return;
-		this._delegationInit = true;
-
-		this.container.addEventListener("dragstart", (e) => {
-			const item = e.target.closest("." + this.blockClassName);
+		this.container.addEventListener('dragstart', e => {
+			const item = e.target.closest('.' + this.blockClassName);
 			if (!item) return;
 
 			e.stopPropagation();
-			e.dataTransfer.effectAllowed = "move";
+			e.dataTransfer.effectAllowed = 'move';
 
-			const ghost = document.createElement("div");
-			ghost.textContent = item.querySelector(".structure-label")?.textContent || "Dragging";
+			const ghost = document.createElement('div');
+			ghost.textContent = item.querySelector('.structure-label')?.textContent || 'Dragging';
 			Object.assign(ghost.style, {
-				position: "absolute",
-				top: "-9999px",
-				left: "-9999px",
-				padding: "4px 8px",
-				background: "#fff",
-				border: "1px solid #ccc",
-				borderRadius: "4px",
-				fontSize: "12px",
-				color: "#111"
+				position: 'absolute',
+				top: '-9999px',
+				left: '-9999px',
+				padding: '4px 8px',
+				background: '#fff',
+				border: '1px solid #ccc',
+				borderRadius: '4px',
+				fontSize: '12px',
+				color: '#111',
 			});
 			document.body.appendChild(ghost);
 			e.dataTransfer.setDragImage(ghost, 0, 0);
 			setTimeout(() => ghost.remove(), 0);
 
-			item.classList.add("dragging");
-			item.style.opacity = "0.5";
+			item.classList.add('dragging');
+			item.style.opacity = '0.5';
 
-			const id = item.dataset.elementId;
-			const compiledEl = this.findCompiledEl(id);
-
+			const compiledEl = this.findCompiledEl(item.dataset.elementId);
 			if (compiledEl) {
 				this.dropManager.draggedElement = compiledEl;
-				try {
-					e.dataTransfer.setData("text/plain", id);
-				} catch {}
+				e.dataTransfer.setData('text/plain', '');
 			}
 		});
 
-		this.container.addEventListener("dragend", () => {
-			this.container.querySelectorAll("." + this.blockClassName + ".dragging")
-				.forEach(el => {
-					el.classList.remove("dragging");
-					el.style.opacity = "";
-				});
-
+		this.container.addEventListener('dragend', () => {
+			this.container.querySelectorAll(`.${this.blockClassName}.dragging`).forEach(el => {
+				el.classList.remove('dragging');
+				el.style.opacity = '';
+			});
 			this._clearHoverState();
-			if (this.dropManager?.draggedElement) {
-				this.dropManager.draggedElement = null;
-			}
+			this.dropManager.draggedElement = null;
 		});
+	}
 
-		// --- Keyboard navigation for moving selected block ---
-		this.container.tabIndex = 0; // make container focusable
-		this.container.addEventListener("keydown", (e) => {
-			if (!this.selectedBlock) return;
+	setupKeyboard() {
+		this.container.tabIndex = 0;
+		this.container.addEventListener('keydown', e => {
+			const selected = this.dropManager.selected;
+			const block = selected && selected.closest('[data-buffer]');
+			if (!block) return;
 
-			const id = this.selectedBlock.dataset.elementId;
-			const compiledEl = this.findCompiledEl(id);
-
-			if (!compiledEl) return;
-
-			if (e.key === "ArrowUp") {
-				const prev = this.selectedBlock.previousElementSibling;
-				if (prev) {
-					prev.before(this.selectedBlock);
-					compiledEl.parentElement.insertBefore(compiledEl, compiledEl.previousElementSibling);
-				}
-			} else if (e.key === "ArrowDown") {
-				const next = this.selectedBlock.nextElementSibling;
-				if (next) {
-					next.after(this.selectedBlock);
-					compiledEl.parentElement.insertBefore(compiledEl, compiledEl.nextElementSibling.nextSibling);
-				}
+			if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+				e.preventDefault();
+				this.dropManager.moveElement(block, e.key === 'ArrowUp' ? 'up' : 'down');
+			} else if (e.key === 'Delete' || e.key === 'Backspace') {
+				e.preventDefault();
+				this.dropManager.removeElement(block);
+			} else if (e.key === 'Escape') {
+				this.dropManager.select(null);
 			}
 		});
 	}
 
 	findCompiledEl(id) {
-		return Array.from(this.dropManager.doc.body.querySelectorAll(".droppable"))
-			.find(el => el.dataset.structureId === id)
+		return this.dropManager.findById(id);
 	}
 
 	// ---------------------- DROP LINE ----------------------
 
 	createDropLine() {
-		let line = document.getElementById("structure-drop-line");
+		let line = document.getElementById('structure-drop-line');
 		if (!line) {
-			line = document.createElement("div");
-			line.id = "structure-drop-line";
+			line = document.createElement('div');
+			line.id = 'structure-drop-line';
 			Object.assign(line.style, {
-				position: "absolute",
-				height: "2px",
-				background: "#28a745",
+				position: 'fixed',
+				height: '2px',
+				background: '#28a745',
 				zIndex: 9999,
-				display: "none",
+				display: 'none',
+				pointerEvents: 'none',
 			});
 			document.body.appendChild(line);
 		}

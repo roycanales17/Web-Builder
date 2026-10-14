@@ -1,17 +1,58 @@
 export default {
 	id: 'navbar-1',
-	label: 'Navbar 1',
-	thumbnail: 'https://via.placeholder.com/150x100?text=Navbar+1',
-	category: 'Navbar',
+	label: 'Navbar — Classic',
+	description: 'Brand on the left, links on the right',
+	category: 'Navigation',
 	content: `
-		<header style="position: absolute; top: 0; left: 0;width: 100%;display:flex;justify-content:space-between;align-items:center;padding:16px 24px;background:#1e90ff;color:white;">
-			<div style="font-size:20px;font-weight:bold;">BrandLogo</div>
-			<nav style="display:flex;gap:20px;">
-				<a href="#" style="color:white;text-decoration:none;">Home</a>
-				<a href="#" style="color:white;text-decoration:none;">About</a>
-				<a href="#" style="color:white;text-decoration:none;">Services</a>
-				<a href="#" style="color:white;text-decoration:none;">Contact</a>
+		<header class="g--navbar-1">
+			<a class="g--navbar-1-brand" href="index.html">BrandLogo</a>
+			<nav class="g--navbar-1-links">
+				<a href="index.html">Home</a>
+				<a href="#about">About</a>
+				<a href="#services">Services</a>
+				<a href="#contact">Contact</a>
 			</nav>
 		</header>
+		<style>
+			.g--navbar-1 {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				gap: 16px;
+				padding: 16px 24px;
+				background: #1e90ff;
+				color: #fff;
+			}
+
+			.g--navbar-1-brand {
+				font-size: 20px;
+				font-weight: 700;
+				color: inherit;
+				text-decoration: none;
+			}
+
+			.g--navbar-1-links {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 20px;
+			}
+
+			.g--navbar-1-links a {
+				color: inherit;
+				text-decoration: none;
+				opacity: .9;
+			}
+
+			.g--navbar-1-links a:hover {
+				opacity: 1;
+				text-decoration: underline;
+			}
+
+			@media (max-width: 575px) {
+				.g--navbar-1 {
+					flex-direction: column;
+				}
+			}
+		</style>
 	`
 };

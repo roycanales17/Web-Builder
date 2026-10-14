@@ -1,32 +1,27 @@
 export default {
 	id: 'layout-3-columns',
-	label: '3 Columns (Responsive)',
-	thumbnail: '<i class="fas fa-columns" style="font-size: 32px; color: #333; display: block; text-align: center; margin: 0 auto;"></i>',
+	label: '3 Columns',
+	description: 'Three equal columns, stacked on mobile',
+	category: 'Layouts',
 	content: `
-		<div class="grape--layout-3-columns">
-			<div>Column 1</div>
-			<div>Column 2</div>
-			<div>Column 3</div>
+		<div class="g--layout-3-columns">
+			<div class="g--layout-3-columns-col" data-dropzone></div>
+			<div class="g--layout-3-columns-col" data-dropzone></div>
+			<div class="g--layout-3-columns-col" data-dropzone></div>
 		</div>
 		<style>
-			.grape--layout-3-columns {
-				display: flex;
-				flex-direction: column;
-				gap: 1rem;
+			.g--layout-3-columns {
+				display: grid;
+				grid-template-columns: repeat(3, minmax(0, 1fr));
+				gap: 24px;
+				padding: 24px;
 			}
-			@media (min-width: 640px) {
-				.grape--layout-3-columns {
-					flex-direction: row;
+
+			@media (max-width: 900px) {
+				.g--layout-3-columns {
+					grid-template-columns: 1fr;
 				}
 			}
-			.grape--layout-3-columns > div {
-				flex: 1;
-				padding: 1rem;
-				border: 1px dashed #ccc;
-				text-align: center;
-				background: #f9f9f9;
-			}
 		</style>
-	`,
-	category: 'Layouts'
+	`
 };

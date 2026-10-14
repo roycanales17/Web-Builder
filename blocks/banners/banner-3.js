@@ -1,8 +1,8 @@
 export default {
 	id: 'banner-3',
-	label: 'Banner 3',
-	thumbnail: '/resources/images/thumbnails/banners/banner-3.png',
-	category: 'Banner',
+	label: 'Hero — Professional',
+	description: 'Dark overlay hero with serif heading',
+	category: 'Hero',
 	content: `
 	<section class="g--banner-hero-3">
 		<div class="g--banner-hero-3-overlay">
@@ -21,7 +21,7 @@ export default {
 		.g--banner-hero-3 {
 			position: relative;
 			height: 100vh;
-			background-image: url('/resources/images/banners/banner-3.jpg');
+			background-image: url('{{assets}}banners/banner-3.jpg');
 			background-size: cover;
 			background-position: center;
 			display: flex;

@@ -1,12 +1,19 @@
+import { BLOCK_MIME } from './DropManager.js';
+
 export class BlocksManager
 {
-	constructor(identifier) {
+	constructor(identifier, dropManager) {
 		this.categories = {};
 		this.container = document.getElementById(identifier);
+		this.dropManager = dropManager;
 	}
 
 	/**
-	 * Register a categories
+	 * Register a category
+	 *
+	 * Blocks: { label, icon, type, content?, container? }
+	 *  - content:   HTML used to create the element (defaults to an empty <type>)
+	 *  - container: true when other blocks can be dropped inside it
 	 *
 	 * @param category
 	 * @param label
@@ -31,46 +38,52 @@ export class BlocksManager
 
 	/**
 	 * Create block element for categories
-	 *
-	 * @returns {HTMLDivElement}
 	 */
 	renderBlockPanels(categories) {
-		Object.entries(categories).forEach(([key, { label, blocks }]) => {
+		Object.values(categories).forEach(({ label, blocks }) => {
 
 			// Panel wrapper
 			const section = document.createElement('div');
 			section.className = 'flex flex-col gap-3 mb-5';
 
 			// Header
-			section.innerHTML = `
-				<div class="flex items-center gap-2">
-					<div class="h-px flex-1 bg-gray-200"></div>
-					<h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">${label}</h3>
-					<div class="h-px flex-1 bg-gray-200"></div>
-				</div>
+			const header = document.createElement('div');
+			header.className = 'flex items-center gap-2';
+			header.innerHTML = `
+				<div class="h-px flex-1 bg-gray-200"></div>
+				<h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap"></h3>
+				<div class="h-px flex-1 bg-gray-200"></div>
 			`;
+			header.querySelector('h3').textContent = label;
+			section.appendChild(header);
 
 			// Grid for blocks
 			const grid = document.createElement('div');
 			grid.className = 'grid grid-cols-2 gap-3';
 
 			blocks.forEach(block => {
+				const spec = { kind: 'block', ...block };
 				const item = document.createElement('div');
-				item.className = 'flex flex-col justify-center items-center gap-2 p-3 border border-gray-200 rounded-lg cursor-grab bg-white';
+				item.className = 'flex flex-col justify-center items-center gap-2 p-3 border border-gray-200 rounded-lg cursor-grab bg-white hover:border-[#0072F4] transition-colors';
 				item.classList.add('item-block');
 				item.setAttribute('draggable', 'true');
+				item.title = `Drag to the canvas or click to add ${block.label}`;
 
-				// Drag event for DropManager
 				item.addEventListener('dragstart', (e) => {
-					e.dataTransfer.setData('type', block.type);
-					e.dataTransfer.setData('context', block.context);
-					e.dataTransfer.setData('label', block.label);
+					e.dataTransfer.effectAllowed = 'copy';
+					e.dataTransfer.setData(BLOCK_MIME, JSON.stringify(spec));
+				});
+
+				item.addEventListener('click', () => {
+					const manager = this.dropManager;
+					if (manager && manager.doc) manager.insertAtSelection(manager.createBlock(spec));
 				});
 
 				item.innerHTML = `
-					<i class="${block.icon} w-6 h-6 text-gray-600 group-hover:text-primary"></i>
-					<span class="font-medium text-xs leading-4 text-neutral-600">${block.label}</span>
+					<i class="${block.icon} w-6 h-6 text-gray-600"></i>
+					<span class="font-medium text-xs leading-4 text-neutral-600"></span>
 				`;
+				item.querySelector('span').textContent = block.label;
 
 				grid.appendChild(item);
 			});
@@ -85,6 +98,6 @@ export class BlocksManager
 	}
 }
 
-export default function init(identifier) {
-	return new BlocksManager(identifier);
+export default function init(identifier, dropManager) {
+	return new BlocksManager(identifier, dropManager);
 }

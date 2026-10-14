@@ -1,12 +1,26 @@
 export default {
 	id: 'layout-2-columns',
-	label: '2 Columns (Responsive)',
+	label: '2 Columns',
+	description: 'Two equal columns, stacked on mobile',
 	category: 'Layouts',
-	thumbnail: '<i class="fas fa-columns" style="font-size: 32px; color: #333; display: block; text-align: center; margin: 0 auto;"></i>',
 	content: `
-		<div class="grape--layout-2-columns">
-			<div class="grape--col">Column 1</div>
-			<div class="grape--col">Column 2</div>
+		<div class="g--layout-2-columns">
+			<div class="g--layout-2-columns-col" data-dropzone></div>
+			<div class="g--layout-2-columns-col" data-dropzone></div>
 		</div>
+		<style>
+			.g--layout-2-columns {
+				display: grid;
+				grid-template-columns: repeat(2, minmax(0, 1fr));
+				gap: 24px;
+				padding: 24px;
+			}
+
+			@media (max-width: 767px) {
+				.g--layout-2-columns {
+					grid-template-columns: 1fr;
+				}
+			}
+		</style>
 	`
 };

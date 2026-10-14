@@ -1,14 +1,18 @@
 {
   "name": "draganddrop",
   "version": "1.0.0",
-  "description": "Run The Application ```shell npx serve . ```",
-  "main": "index.js",
+  "description": "Drag-and-drop multi-page website builder that exports clean HTML with generated CSS.",
   "scripts": {
+    "build": "npm-run-all build:css build:icons build:main",
+    "build:css": "tailwindcss -i src/tailwind.css -o dist/utilities.css --minify",
+    "build:icons": "esbuild src/icons.js --bundle --minify --outfile=dist/icons.js",
+    "build:main": "esbuild src/main.js --bundle --minify --sourcemap --outfile=dist/main.js",
+    "start": "npm run build && http-server . -p 8080 -c-1 -o",
     "dev": "npm-run-all --parallel watch js:watch main:watch serve",
-    "watch": "npx tailwindcss -i src/tailwind.css -o dist/utilities.css --watch",
+    "watch": "tailwindcss -i src/tailwind.css -o dist/utilities.css --watch",
     "js:watch": "esbuild src/icons.js --bundle --minify --outfile=dist/icons.js --watch",
-    "main:watch": "esbuild src/main.js --bundle --minify --outfile=dist/main.js --watch",
-    "serve": "live-server"
+    "main:watch": "esbuild src/main.js --bundle --sourcemap --outfile=dist/main.js --watch",
+    "serve": "live-server --no-css-inject"
   },
   "repository": {
     "type": "git",
@@ -24,7 +28,6 @@
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^7.0.0",
     "@fortawesome/free-solid-svg-icons": "^7.0.0",
-    "@fortawesome/react-fontawesome": "^0.2.3",
     "@tailwindcss/cli": "^4.1.3"
   },
   "devDependencies": {

@@ -1,8 +1,8 @@
 export default {
 	id: 'banner-2',
-	label: 'Banner 2',
-	thumbnail: '/resources/images/thumbnails/banners/banner-2.png',
-	category: 'Banner',
+	label: 'Hero — Travel',
+	description: 'Full-screen photo with feature prices',
+	category: 'Hero',
 	content: `
 		<section class="g--banner-hero-2">
 			<div class="g--banner-hero-2-overlay"> 
@@ -53,7 +53,7 @@ export default {
 			.g--banner-hero-2 {
 				position: relative;
 				height: 100vh;
-				background-image: url('/resources/images/banners/banner-2.jpg');
+				background-image: url('{{assets}}banners/banner-2.jpg');
 				background-size: cover;
 				background-position: center;
 				display: flex;
