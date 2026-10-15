@@ -27,7 +27,12 @@ Other scripts:
 - **Blocks**: layouts (Section, Container, Row, Column, Grid), content, media, form controls and CSS-only interactive blocks (Tabs, Accordion, Carousel). Drag them onto the canvas or click to add after the selection.
 - **Page templates**: start a new page from Landing, About, Services, Pricing, Portfolio, Blog, Blog post, Contact, Personal/Resume or 404. You can also append one to the page you're on (Components → Pages).
 - **Section templates** (Components → Sections): 35 sections. They include navbars, heroes, page headers, features, how-it-works steps, services, stats, pricing, testimonials, logo strip, team, timeline, portfolio, gallery, blog cards, article, FAQ, call to action, newsletter, contact form and info, 404, footers and column layouts. Each one has a live thumbnail, and you can search or filter by category.
-- **Nesting**: containers and template columns accept blocks. Text elements never swallow drops.
+- **Drag anything, anywhere**: drag any element, including ones inside a component (a card, a heading, a button), out to the page or into another component. You can also drop blocks into a component's containers.
+  - Grabbing an element drags that element. To move a whole component, click it once, then drag it (or use the Structure tab).
+  - The selected element has a toolbar with a drag handle, *select parent*, *duplicate* and *delete*.
+  - Drop near a container's edge to place the element beside it instead of inside. Left and right edges count when items sit in a row, such as cards in a grid.
+  - Elements moved out of a component become blocks of their own and show in the Structure tab. They lose the component's CSS once they're outside it.
+  - List items stay in lists, and menus that follow your pages don't accept drops. Text elements never swallow drops.
 - **Editor panel**: edit text, links (with a picker for your pages), images (URL or upload), form attributes, ID and classes, and styles.
 - **Responsive styles**: choose Desktop, Tablet (≤ 900px) or Mobile (≤ 575px) in the top bar, then edit. Tablet and mobile edits become media-query overrides.
 - **Inline editing**: double-click text on the canvas. Click once to select a block, then click again to select an element inside it.

@@ -66,6 +66,82 @@
 			outline-offset: -2px !important;
 		}
 
+		/* Inside a selected component, show which element the next click selects */
+		.wb-selected :hover:not(:has(:hover)),
+		[data-buffer]:has(.wb-selected) :hover:not(:has(:hover)) {
+			outline: 1px dashed rgba(0, 114, 244, .6);
+			outline-offset: -1px;
+		}
+
+		/* Selection toolbar */
+		#wb-toolbar {
+			position: absolute;
+			z-index: 2147483646;
+			display: none;
+			align-items: center;
+			gap: 1px;
+			height: 24px;
+			padding: 0 2px;
+			border-radius: 4px 4px 0 0;
+			background: #0072F4;
+			color: #fff;
+			font: 500 11px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+			white-space: nowrap;
+			box-shadow: 0 1px 3px rgba(0, 0, 0, .2);
+		}
+
+		#wb-toolbar.show {
+			display: flex;
+		}
+
+		/* Faded rather than hidden: it can be the drag source, and hiding the
+		   source element makes the browser cancel the drag. */
+		.wb-dragging #wb-toolbar {
+			opacity: 0;
+			pointer-events: none;
+		}
+
+		#wb-toolbar button,
+		#wb-toolbar .wb-tb-move {
+			all: unset;
+			display: inline-flex;
+			align-items: center;
+			gap: 5px;
+			height: 22px;
+			padding: 0 6px;
+			border-radius: 3px;
+			cursor: pointer;
+		}
+
+		#wb-toolbar .wb-tb-move {
+			cursor: grab;
+			/* `all: unset` above also resets the browser's draggable styling */
+			-webkit-user-drag: element;
+			user-select: none;
+		}
+
+		#wb-toolbar button:hover,
+		#wb-toolbar .wb-tb-move:hover {
+			background: rgba(255, 255, 255, .2);
+		}
+
+		#wb-toolbar button:disabled {
+			opacity: .4;
+			cursor: default;
+		}
+
+		#wb-toolbar svg {
+			width: 12px;
+			height: 12px;
+			fill: currentColor;
+		}
+
+		/* While dragging, emptied containers inside components stay reachable */
+		.wb-dragging [data-buffer] :is(div, section, article, aside, li, figure, form, header, footer, main):empty {
+			min-height: 24px;
+			outline: 1px dashed #cbd5e1;
+		}
+
 		[contenteditable="true"] {
 			outline: 2px solid #f59e0b !important;
 			outline-offset: 2px !important;

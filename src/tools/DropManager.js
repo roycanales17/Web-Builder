@@ -12,6 +12,39 @@ const NON_TEXT_TAGS = new Set(['INPUT', 'IMG', 'HR', 'BR', 'VIDEO', 'AUDIO', 'IF
 /** Classes that describe transient editor state and must not be recorded in history. */
 const TRANSIENT_CLASSES = ['drop-target-highlight', 'wb-selected'];
 
+/** Elements inside a block or component that accept dropped elements. */
+const CONTAINER_TAGS = new Set(['div', 'section', 'header', 'footer', 'main', 'article', 'aside', 'nav', 'form', 'figure', 'li', 'details', 'fieldset']);
+
+/** Elements that are only valid inside specific parents. */
+const PARENT_RULES = { li: ['ul', 'ol'] };
+
+/** Elements that are never dragged on their own. */
+const UNDRAGGABLE_TAGS = new Set(['summary', 'option', 'optgroup', 'source', 'track', 'tr', 'td', 'th', 'thead', 'tbody', 'tfoot', 'caption', 'col', 'colgroup', 'legend', 'br', 'style']);
+
+/** Inline formatting that is dragged together with its parent (text, heading…). */
+const DRAG_WITH_PARENT_TAGS = new Set(['span', 'strong', 'em', 'b', 'i', 'u', 's', 'small', 'sub', 'sup', 'mark', 'code', 'time', 'abbr', 'br', 'svg', 'path']);
+
+/** Inline elements that may appear inside text being edited in place. */
+const INLINE_TAGS = new Set(['BR', 'SPAN', 'STRONG', 'EM', 'B', 'I', 'U', 'S', 'A', 'SMALL', 'CODE', 'MARK', 'SUB', 'SUP', 'TIME', 'ABBR']);
+
+/** Names shown for elements that become blocks when they are moved. */
+const FRIENDLY_NAMES = {
+	h1: 'Heading', h2: 'Heading', h3: 'Heading', h4: 'Heading', h5: 'Heading', h6: 'Heading',
+	p: 'Paragraph', a: 'Link', img: 'Image', button: 'Button', ul: 'List', ol: 'List', li: 'List item',
+	blockquote: 'Quote', figure: 'Figure', form: 'Form', nav: 'Menu', header: 'Header', footer: 'Footer',
+	section: 'Section', article: 'Article', aside: 'Aside', div: 'Container', span: 'Text', label: 'Label',
+	input: 'Input', textarea: 'Textarea', select: 'Select', video: 'Video', audio: 'Audio', iframe: 'Embed',
+	details: 'Details', time: 'Time', strong: 'Text', em: 'Text', small: 'Text',
+};
+
+/** Icons for the selection toolbar (the canvas has no icon font). */
+const ICONS = {
+	move: '<svg viewBox="0 0 24 24"><path d="M12 2l3.5 3.5H13v5.5h5.5V8.5L22 12l-3.5 3.5V13H13v5.5h2.5L12 22l-3.5-3.5H11V13H5.5v2.5L2 12l3.5-3.5V11H11V5.5H8.5z"/></svg>',
+	up: '<svg viewBox="0 0 24 24"><path d="M12 4l7 7h-5v9h-4v-9H5z"/></svg>',
+	copy: '<svg viewBox="0 0 24 24"><path d="M8 2h12v14H8zM10 4v10h8V4zM4 6h2v14h10v2H4z"/></svg>',
+	trash: '<svg viewBox="0 0 24 24"><path d="M9 2h6l1 2h4v2H4V4h4zM6 8h12l-1 14H7zM10 10v10h1.5V10zm2.5 0v10H14V10z"/></svg>',
+};
+
 class DropManager {
 	constructor(rootId) {
 		this.parentRoot = document.getElementById(rootId);
@@ -63,8 +96,10 @@ class DropManager {
 		this.doc.body.appendChild(this.dropLine);
 
 		this.doc.body.classList.add('droppable');
+		this._setupToolbar();
 
 		const on = (type, handler, options) => this.doc.addEventListener(type, handler.bind(this), options);
+		on('mousedown', e => { this._pointerTarget = e.target; }, true);
 		on('dragstart', this._onDragStart);
 		on('dragover', this._onDragOver);
 		on('dragleave', this._onDragLeave);
@@ -188,6 +223,7 @@ class DropManager {
 		const clone = this.doc.body.cloneNode(true);
 		clone.querySelectorAll(`#${this.skeletonId}, [data-editor]`).forEach(n => n.remove());
 		clone.querySelectorAll('[contenteditable]').forEach(n => n.removeAttribute('contenteditable'));
+		clone.querySelectorAll('[draggable]:not([data-buffer])').forEach(n => n.removeAttribute('draggable'));
 		clone.querySelectorAll('[class]').forEach(n => {
 			n.classList.remove(...TRANSIENT_CLASSES);
 			if (!n.classList.length) n.removeAttribute('class');
@@ -290,11 +326,14 @@ class DropManager {
 	insertAtSelection(el) {
 		const selected = this.selected;
 		let inserted;
-		if (selected && selected.classList.contains('droppable')) {
+		if (selected && !this._isTemplate(selected) && this._isZone(selected, el)) {
 			inserted = this.insertSorted(selected, el);
+		} else if (selected && this._isZone(selected.parentElement, el)) {
+			inserted = this.insertSorted(selected.parentElement, el, selected, 'below');
 		} else if (selected) {
 			const block = selected.closest('[data-buffer]') || selected;
-			inserted = this.insertSorted(block.parentElement, el, block, 'below');
+			const parent = this._closestZone(block.parentElement, el) || this.doc.body;
+			inserted = this.insertSorted(parent, el, block.parentElement === parent ? block : null, 'below');
 		} else {
 			inserted = this.insertSorted(this.doc.body, el);
 		}
@@ -377,7 +416,109 @@ class DropManager {
 	/** The element new children should be appended to when dropping "inside" a block. */
 	dropZoneFor(el) {
 		if (!el) return null;
-		return el.classList.contains('droppable') ? el : el.querySelector('.droppable');
+		if (el.classList.contains('droppable')) return el;
+		const explicit = el.querySelector('.droppable');
+		if (explicit) return explicit;
+		// A component: its first container (e.g. the template's <section>).
+		if (this._isTemplate(el)) return Array.from(el.children).find(c => this._isZone(c, null)) || null;
+		return this._isZone(el, null) ? el : null;
+	}
+
+	_bufferOf(el) {
+		try { return JSON.parse(el.getAttribute('data-buffer') || '{}'); } catch (err) { return {}; }
+	}
+
+	_isTemplate(el) {
+		return Boolean(el && el.hasAttribute('data-buffer') && this._bufferOf(el).type === 'template');
+	}
+
+	/** Display name for an element: its block label, or a name based on its tag. */
+	labelFor(el) {
+		if (el.hasAttribute('data-buffer')) {
+			const label = this._bufferOf(el).label;
+			if (label) return label;
+		}
+		return FRIENDLY_NAMES[el.localName] || el.localName;
+	}
+
+	/**
+	 * Turn an element that was part of a component into a block of its own, so it
+	 * shows up in the structure tree and can be selected and dragged directly.
+	 */
+	_promote(el) {
+		if (el.hasAttribute('data-buffer')) return;
+		el.setAttribute('data-buffer', JSON.stringify({ label: this.labelFor(el), type: el.localName, context: '' }));
+		el.setAttribute('draggable', 'true');
+		delete el.__wbTempDraggable;
+	}
+
+	// ---------------------------------------------------------------- zones
+
+	/** Elements that must stay in a specific kind of parent (e.g. li → ul/ol). */
+	_requiredParents(el) {
+		return (el && PARENT_RULES[el.localName]) || null;
+	}
+
+	/** Can `dragged` (null for a new block) be dropped inside `el`? */
+	_isZone(el, dragged) {
+		if (!el || el.nodeType !== 1) return false;
+		const required = this._requiredParents(dragged);
+		if (el === this.doc.body) return !required;
+		if (el.hasAttribute('data-editor') || el.id === this.skeletonId || el.isContentEditable) return false;
+		// Menus that follow the page list are regenerated, so nothing can be dropped in them.
+		if (el.closest('[data-nav]')) return false;
+		if (required) return required.includes(el.localName);
+		if (el.classList.contains('droppable')) return true;
+		return CONTAINER_TAGS.has(el.localName) && Boolean(el.closest('[data-buffer]'));
+	}
+
+	/** The nearest ancestor of `node` (inclusive) that accepts `dragged`, skipping `dragged` itself. */
+	_closestZone(node, dragged) {
+		for (let el = node; el && el !== this.doc.documentElement; el = el.parentElement) {
+			if (dragged && dragged.contains(el)) continue;
+			if (this._isZone(el, dragged)) return el;
+		}
+		return null;
+	}
+
+	/** Does `el` share a row with one of its siblings (flex row, grid…)? */
+	_inRow(el, siblings = Array.from(el.parentElement ? el.parentElement.children : [])) {
+		const rect = el.getBoundingClientRect();
+		return siblings.some(sibling => {
+			if (sibling === el || !this._isContentNode(sibling)) return false;
+			const r = sibling.getBoundingClientRect();
+			const overlap = Math.min(r.bottom, rect.bottom) - Math.max(r.top, rect.top);
+			return overlap > Math.min(r.height, rect.height) / 2;
+		});
+	}
+
+	/**
+	 * Near the edge of a container, drop next to it instead of inside it: top and
+	 * bottom always, left and right when it sits in a row with siblings (cards in
+	 * a grid). Nested containers often share an edge (a card inside a grid inside
+	 * a section), so keep climbing while the parent's edge is under the pointer too.
+	 */
+	_edgeTarget(zone, e, dragged) {
+		let result = null;
+		for (let current = zone; current && current !== this.doc.body;) {
+			const rect = current.getBoundingClientRect();
+			let position = null;
+			if (e.clientY - rect.top < EDGE_BAND) position = 'above';
+			else if (rect.bottom - e.clientY < EDGE_BAND) position = 'below';
+			else if (e.clientX - rect.left < EDGE_BAND && this._inRow(current)) position = 'left';
+			else if (rect.right - e.clientX < EDGE_BAND && this._inRow(current)) position = 'right';
+			if (!position) break;
+
+			const parentZone = this._closestZone(current.parentElement, dragged);
+			if (!parentZone) break;
+			let ref = current;
+			while (ref.parentElement !== parentZone) ref = ref.parentElement;
+			if (ref === dragged) break;
+
+			result = { zone: parentZone, ref, position };
+			current = parentZone;
+		}
+		return result;
 	}
 
 	// --------------------------------------------------------------- selection
@@ -386,13 +527,105 @@ class DropManager {
 		if (el && (!this.doc || !this.doc.body.contains(el) || el === this.doc.body)) el = null;
 		if (this.selected === el) return;
 
-		if (this.selected) {
-			this.selected.classList.remove('wb-selected');
-			if (!this.selected.classList.length) this.selected.removeAttribute('class');
+		const previous = this.selected;
+		if (previous) {
+			previous.classList.remove('wb-selected');
+			if (!previous.classList.length) previous.removeAttribute('class');
+			if (previous.__wbTempDraggable) {
+				previous.removeAttribute('draggable');
+				delete previous.__wbTempDraggable;
+			}
 		}
+
 		this.selected = el;
-		if (el) el.classList.add('wb-selected');
+		if (el) {
+			el.classList.add('wb-selected');
+			// Selected elements inside components can be dragged on their own.
+			if (!el.hasAttribute('draggable') && !UNDRAGGABLE_TAGS.has(el.localName)) {
+				el.setAttribute('draggable', 'true');
+				el.__wbTempDraggable = true;
+			}
+		}
+		this._updateToolbar();
 		this._emit('select', el);
+	}
+
+	/** Select the parent of the current selection (stops below <body>). */
+	selectParent() {
+		const parent = this.selected && this.selected.parentElement;
+		if (parent && parent !== this.doc.body) this.select(parent);
+	}
+
+	// ------------------------------------------------------------ toolbar
+
+	/** Floating toolbar on the selected element: drag handle, parent, duplicate, delete. */
+	_setupToolbar() {
+		const bar = this.doc.createElement('div');
+		bar.id = 'wb-toolbar';
+		bar.setAttribute('data-editor', '');
+		bar.innerHTML = `
+			<span class="wb-tb-move" draggable="true" title="Drag to move">${ICONS.move}<span class="wb-tb-label"></span></span>
+			<button type="button" data-action="parent" title="Select parent">${ICONS.up}</button>
+			<button type="button" data-action="duplicate" title="Duplicate">${ICONS.copy}</button>
+			<button type="button" data-action="delete" title="Delete">${ICONS.trash}</button>
+		`;
+		bar.addEventListener('click', e => {
+			e.preventDefault();
+			e.stopPropagation();
+			const action = e.target.closest('[data-action]')?.dataset.action;
+			const el = this.selected;
+			if (!el || !action) return;
+			if (action === 'parent') this.selectParent();
+			else if (action === 'duplicate') this.duplicateElement(el);
+			else if (action === 'delete') this.removeElement(el);
+		});
+		bar.addEventListener('dblclick', e => e.stopPropagation());
+		this.doc.body.appendChild(bar);
+		this.toolbar = bar;
+	}
+
+	_updateToolbar() {
+		if (!this.toolbar) return;
+		const el = this.selected;
+		this.toolbar.classList.toggle('show', Boolean(el));
+		if (!el) return;
+
+		this.toolbar.querySelector('.wb-tb-label').textContent = this.labelFor(el);
+		const parent = el.parentElement;
+		this.toolbar.querySelector('[data-action="parent"]').disabled = !parent || parent === this.doc.body;
+
+		// Follow the element while the page scrolls, reflows or styles change.
+		if (!this._toolbarFrame) {
+			const tick = () => {
+				this._toolbarFrame = null;
+				if (!this.selected) return;
+				this._positionToolbar();
+				this._toolbarFrame = this.doc.defaultView.requestAnimationFrame(tick);
+			};
+			tick();
+		}
+	}
+
+	_positionToolbar() {
+		const bar = this.toolbar;
+		const el = this.selected;
+		const visible = el.isConnected && !this.editingElement;
+		bar.classList.toggle('show', visible);
+		if (!visible) return;
+
+		const rect = el.getBoundingClientRect();
+		const body = this.doc.body.getBoundingClientRect();
+		const height = bar.offsetHeight || 24;
+		const viewportWidth = this.doc.documentElement.clientWidth;
+		// Above the element, or just inside its top edge when there is no room.
+		const top = (rect.top >= height ? rect.top - height : Math.max(rect.top, 0)) - body.top;
+		const left = Math.max(0, Math.min(rect.left, viewportWidth - bar.offsetWidth)) - body.left;
+		const position = `${Math.round(left)}px,${Math.round(top)}px`;
+		if (bar.dataset.position !== position) {
+			bar.dataset.position = position;
+			bar.style.left = `${Math.round(left)}px`;
+			bar.style.top = `${Math.round(top)}px`;
+		}
 	}
 
 	_onClick(e) {
@@ -402,10 +635,11 @@ class DropManager {
 		// Links and buttons inside the canvas should not navigate / submit.
 		if (target.closest('a, button')) e.preventDefault();
 
-		// First click selects the block; clicking again inside the selection drills
-		// down to the exact element (e.g. a button inside a template).
+		// First click selects the block; once something in a block is selected,
+		// clicks inside that block select the exact element (e.g. a card or a
+		// button inside a component).
 		const block = target.closest('[data-buffer]');
-		const drillDown = this.selected && block && block.contains(this.selected) && this.selected.contains(target);
+		const drillDown = this.selected && block && block.contains(this.selected);
 		this.select(drillDown ? target : block);
 	}
 
@@ -413,25 +647,33 @@ class DropManager {
 
 	_onDoubleClick(e) {
 		const el = e.target.nodeType === 1 ? e.target : e.target.parentElement;
-		if (!el || !el.closest('[data-buffer]') || !this._isTextEditable(el)) return;
+		if (!el || el.closest('[data-editor]') || !el.closest('[data-buffer]') || !this._isTextEditable(el)) return;
 		e.preventDefault();
 		this.startTextEditing(el);
 	}
 
 	_isTextEditable(el) {
 		if (NON_TEXT_TAGS.has(el.tagName) || el.classList.contains('droppable')) return false;
-		const blocking = Array.from(NON_TEXT_TAGS).filter(tag => tag !== 'BR').join(',');
-		if (el.querySelector(`[data-buffer], .droppable, ${blocking}`)) return false;
+		// Only text with inline formatting; editing a container in place could
+		// delete the elements inside it.
+		if (Array.from(el.querySelectorAll('*')).some(child => !INLINE_TAGS.has(child.tagName))) return false;
 		return el.textContent.trim().length > 0;
 	}
 
 	startTextEditing(el) {
 		this._finishTextEditing();
-		const block = el.closest('[data-buffer]');
 		if (!this.selected || !this.selected.contains(el)) this.select(el);
 
+		// A draggable ancestor would turn text selection into a drag.
+		this._dragLocks = [];
+		for (let node = el; node && node !== this.doc.body; node = node.parentElement) {
+			if (node.getAttribute('draggable') === 'true') {
+				node.setAttribute('draggable', 'false');
+				this._dragLocks.push(node);
+			}
+		}
+
 		this.editingElement = el;
-		block.setAttribute('draggable', 'false');
 		el.setAttribute('contenteditable', 'true');
 		el.focus();
 	}
@@ -442,8 +684,8 @@ class DropManager {
 		this.editingElement = null;
 
 		el.removeAttribute('contenteditable');
-		const block = el.closest('[data-buffer]');
-		if (block) block.setAttribute('draggable', 'true');
+		(this._dragLocks || []).forEach(node => node.setAttribute('draggable', 'true'));
+		this._dragLocks = [];
 		if (record) this.commit();
 	}
 
@@ -474,14 +716,74 @@ class DropManager {
 	// ------------------------------------------------------------- drag & drop
 
 	_onDragStart(e) {
-		const target = e.target.nodeType === 1 ? e.target : null;
-		const block = target && target.closest('[data-buffer]');
-		if (!block || block.isContentEditable) return;
+		const target = e.target.nodeType === 1 ? e.target : e.target.parentElement;
+		if (!target || this.editingElement) {
+			if (this.editingElement && this.editingElement.contains(target)) return; // dragging selected text
+			e.preventDefault();
+			return;
+		}
 
-		this.draggedElement = block;
+		// The browser starts the drag on the nearest draggable ancestor (usually the
+		// whole block), so use the element that was under the pointer instead.
+		const pointer = this._pointerTarget && this._pointerTarget.nodeType === 1 && target.contains(this._pointerTarget)
+			? this._pointerTarget
+			: target;
+
+		let dragged;
+		if (target.closest('#wb-toolbar')) dragged = this.selected;
+		else if (this._dragsSelection(pointer)) dragged = this.selected;
+		else dragged = this._dragCandidate(pointer);
+
+		if (!dragged || dragged === this.doc.body || UNDRAGGABLE_TAGS.has(dragged.localName)) {
+			e.preventDefault();
+			return;
+		}
+
+		this.draggedElement = dragged;
 		e.dataTransfer.effectAllowed = 'move';
 		// Firefox only starts a drag when some data is set.
 		e.dataTransfer.setData('text/plain', '');
+		if (dragged !== target) {
+			const rect = dragged.getBoundingClientRect();
+			const x = Math.min(Math.max(e.clientX - rect.left, 0), rect.width);
+			const y = Math.min(Math.max(e.clientY - rect.top, 0), rect.height);
+			e.dataTransfer.setDragImage(dragged, x || 12, y || 12);
+		}
+	}
+
+	/**
+	 * Does grabbing `pointer` drag the current selection? Yes when the pointer is
+	 * inside it, unless another block nested in the selection is in between
+	 * (grabbing a heading inside a selected section drags the heading).
+	 */
+	_dragsSelection(pointer) {
+		const selected = this.selected;
+		if (!selected || !selected.contains(pointer)) return false;
+		const innerBlock = pointer.closest('[data-buffer]');
+		return !innerBlock || innerBlock === selected || innerBlock.contains(selected) || !selected.contains(innerBlock);
+	}
+
+	/** The element a drag starting on `node` moves. */
+	_dragCandidate(node) {
+		let el = node;
+		// Inline formatting moves with its text; list options, summaries… with their parent.
+		while (el && el !== this.doc.body && (DRAG_WITH_PARENT_TAGS.has(el.localName) || UNDRAGGABLE_TAGS.has(el.localName))) {
+			el = el.parentElement;
+		}
+		if (!el || el === this.doc.body || !el.closest('[data-buffer]')) return null;
+
+		// Generated menu links are rebuilt from the page list: move the whole menu.
+		const menu = el.closest('[data-nav]');
+		if (menu && menu !== el) el = menu;
+
+		// The only element inside a block (a component's <section>, the Tabs
+		// widget…) stands for the block itself.
+		const parent = el.parentElement;
+		if (parent && parent !== this.doc.body && parent.hasAttribute('data-buffer')
+			&& Array.from(parent.children).filter(c => this._isContentNode(c)).length === 1) {
+			el = parent;
+		}
+		return el;
 	}
 
 	_isNewBlockDrag(e) {
@@ -498,56 +800,42 @@ class DropManager {
 		if (!isNew && !dragged) return null;
 
 		const node = e.target.nodeType === 1 ? e.target : e.target.parentElement;
-		let zone = node && node.closest('.droppable');
-		while (zone && dragged && dragged.contains(zone)) {
-			zone = zone.parentElement && zone.parentElement.closest('.droppable');
-		}
+		if (!node || node.closest('[data-editor]')) return null;
+		const zone = this._closestZone(node, dragged);
 		if (!zone) return null;
 
-		// Near the edge of a container block: insert next to it instead of inside it.
-		if (zone !== this.doc.body && zone.hasAttribute('data-buffer')) {
-			const rect = zone.getBoundingClientRect();
-			const nearTop = e.clientY - rect.top < EDGE_BAND;
-			const nearBottom = rect.bottom - e.clientY < EDGE_BAND;
-			const parentZone = zone.parentElement && zone.parentElement.closest('.droppable');
-			if ((nearTop || nearBottom) && parentZone) {
-				let ref = zone;
-				while (ref.parentElement !== parentZone) ref = ref.parentElement;
-				return { zone: parentZone, ref, position: nearTop ? 'above' : 'below' };
-			}
-		}
+		const edge = this._edgeTarget(zone, e, dragged);
+		if (edge) return edge;
 
 		const children = Array.from(zone.children).filter(c => c !== dragged && this._isContentNode(c));
 		if (!children.length) return { zone, ref: null, position: null };
 
+		// The child nearest the pointer is the reference; whether we drop before or
+		// after it horizontally or vertically depends on the layout: left/right only
+		// when it shares a row with a sibling (flex rows, grids), else above/below.
 		const x = e.clientX;
 		const y = e.clientY;
-		let closestX = null;
-		let closestY = null;
-		let minXDist = Infinity;
-		let minYDist = Infinity;
-
+		let hovered = null;
+		let rect = null;
+		let best = Infinity;
 		for (const child of children) {
-			const rect = child.getBoundingClientRect();
-			if (y >= rect.top && y <= rect.bottom) {
-				const dist = Math.abs(x - (rect.left + rect.width / 2));
-				if (dist < minXDist) { minXDist = dist; closestX = { el: child, rect }; }
-			}
-			if (x >= rect.left && x <= rect.right) {
-				const dist = Math.abs(y - (rect.top + rect.height / 2));
-				if (dist < minYDist) { minYDist = dist; closestY = { el: child, rect }; }
+			const r = child.getBoundingClientRect();
+			if (!r.width && !r.height) continue;
+			const dx = Math.max(r.left - x, 0, x - r.right);
+			const dy = Math.max(r.top - y, 0, y - r.bottom);
+			const distance = dx * dx + dy * dy;
+			if (distance < best) {
+				best = distance;
+				hovered = child;
+				rect = r;
 			}
 		}
+		if (!hovered) return { zone, ref: null, position: null };
 
-		if (closestX && (!closestY || minYDist > 10)) {
-			const { el, rect } = closestX;
-			return { zone, ref: el, position: x < rect.left + rect.width / 2 ? 'left' : 'right' };
+		if (this._inRow(hovered, children)) {
+			return { zone, ref: hovered, position: x < rect.left + rect.width / 2 ? 'left' : 'right' };
 		}
-		if (closestY) {
-			const { el, rect } = closestY;
-			return { zone, ref: el, position: y < rect.top + rect.height / 2 ? 'above' : 'below' };
-		}
-		return { zone, ref: null, position: null };
+		return { zone, ref: hovered, position: y < rect.top + rect.height / 2 ? 'above' : 'below' };
 	}
 
 	_onDragOver(e) {
@@ -593,12 +881,16 @@ class DropManager {
 			}
 		}
 
+		// Elements moved out of (or around) a component become blocks of their own.
+		if (!raw) this._promote(el);
+
 		if (this.insertSorted(target.zone, el, target.ref, target.position)) {
 			this.select(el);
 		}
 	}
 
 	_endDrag() {
+		this._pointerTarget = null;
 		this._clearIndicators();
 		if (this.doc) this.doc.body.classList.remove('wb-dragging');
 		this.draggedElement = null;
